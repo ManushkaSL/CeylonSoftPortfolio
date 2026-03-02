@@ -1,5 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-
+import mobileImg from "@/assets/mobile.png";
+import laptopImg from "@/assets/laptop.png";
 
 const projects = [
   { title: "Project Alpha", desc: "E-commerce platform with real-time inventory", tags: ["React", "Node.js", "MongoDB"] },
