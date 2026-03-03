@@ -195,7 +195,7 @@ export default function Index() {
           style={{ transform: "translateY(-90px)", zIndex: 10, animation: "heroZoomIn 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both" }}>
           <h1 className="leading-tight" style={{ fontFamily: "'Italiana', serif", fontSize: "clamp(2.5rem, 10vw, 6rem)", maxWidth: "1183px", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.25em" }}>
             {["WE", "BUILD", "DIGITAL", "EXPERIENCES"].map((word) => (
-              <span key={word} style={{ background: "linear-gradient(90deg, #FFFFFF 0%, #A8EDFF 40%, #C4B5FD 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", display: "inline-block", filter: "drop-shadow(0 0 18px rgba(0,229,255,0.35))", WebkitTextStrokeWidth: "1px", WebkitTextStrokeColor: "rgba(168,237,255,0.6)" }}>
+              <span key={word} style={{ background: "linear-gradient(90deg, #4A5568 0%, #2D3748 40%, #1A202C 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", display: "inline-block", filter: "drop-shadow(0 0 18px rgba(0,229,255,0.2))", WebkitTextStrokeWidth: "1px", WebkitTextStrokeColor: "rgba(74,85,104,0.6)" }}>
                 {word}
               </span>
             ))}
