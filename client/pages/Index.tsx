@@ -1,6 +1,6 @@
 import React, { useEffect, useRef, useState } from "react";
-import mobileImg from "@/assets/mobile.png";
-import laptopImg from "@/assets/laptop.png";
+import mobileImg from "../../src/assets/mobile.png";
+import laptopImg from "../../src/assets/laptop.png";
 
 const projects = [
   { title: "Project Alpha", desc: "E-commerce platform with real-time inventory", tags: ["React", "Node.js", "MongoDB"] },
@@ -78,11 +78,10 @@ export default function Index() {
   const [isAnimating, setIsAnimating]       = useState(false);
   const [leftClicked, setLeftClicked]       = useState(false);
   const [rightClicked, setRightClicked]     = useState(false);
-  const [hoverEdgeLabel, setHoverEdgeLabel] = useState(false);  // hovering the edge label
-  const [hoverExitedImg, setHoverExitedImg] = useState(false);  // hovering the exited image zone
+  const [hoverEdgeLabel, setHoverEdgeLabel] = useState(false);
+  const [hoverExitedImg, setHoverExitedImg] = useState(false);
   const totalSections = 3;
 
-  /* ── Snap scroll ── */
   useEffect(() => {
     let touchStartY = 0;
     const goTo = (next: number) => {
@@ -102,7 +101,6 @@ export default function Index() {
     return () => { window.removeEventListener("wheel", onWheel); window.removeEventListener("touchstart", onTouchStart); window.removeEventListener("touchend", onTouchEnd); };
   }, [currentSection, isAnimating]);
 
-  /* ── Conic spread-to-focus intro ── */
   useEffect(() => {
     const lc = leftConicRef.current, rc = rightConicRef.current;
     const ll = leftLinearRef.current, rl = rightLinearRef.current;
@@ -123,7 +121,6 @@ export default function Index() {
     tick();
   }, []);
 
-  /* ── Slowly cycling background ── */
   useEffect(() => {
     const bg = bgRef.current;
     if (!bg) return;
@@ -221,7 +218,6 @@ export default function Index() {
       <div style={{ ...sectionStyle(1) }}>
         <div style={{ position: "relative", width: "100%", height: "100%", display: "flex" }}>
 
-          {/* ── DARK OVERLAY left→right sweep ── */}
           <div style={{
             position: "absolute", top: 0, bottom: 0, left: 0,
             width: leftClicked ? "calc(100% - 48px)" : "0%",
@@ -229,7 +225,6 @@ export default function Index() {
             transition: "width 0.65s cubic-bezier(0.4,0,0.2,1)",
             pointerEvents: "none", zIndex: 8,
           }} />
-          {/* ── DARK OVERLAY right→left sweep ── */}
           <div style={{
             position: "absolute", top: 0, bottom: 0, right: 0,
             width: rightClicked ? "calc(100% - 48px)" : "0%",
@@ -238,7 +233,6 @@ export default function Index() {
             pointerEvents: "none", zIndex: 8,
           }} />
 
-          {/* ── NEON LINE ── */}
           <div style={{
             position: "absolute", top: 0,
             left: lineLeft,
@@ -250,64 +244,57 @@ export default function Index() {
             zIndex: 16, pointerEvents: "none",
           }} />
 
-          {/* ── CARD ROW — full width from left edge to neon line (LEFT clicked) ── */}
           {leftClicked && (
             <div style={{
-              position: "absolute", top: 0, bottom: 0,
-              left: 0,
+              position: "absolute", top: 0, bottom: 0, left: 0,
               width: "calc(100% - 48px)",
               display: "flex", flexDirection: "row", alignItems: "center",
               gap: "10px", padding: "0 12px",
               zIndex: 18, pointerEvents: "none",
             }}>
-              {/* Mobile image — natural size */}
               <div style={{
                 flexShrink: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
                 animation: "dealCard 0.4s cubic-bezier(0.22,1,0.36,1) 0s both",
               }}>
-                <img src="/src/assets/mobile.png" alt="Mobile app" style={{
+                {/* ✅ FIXED: was src="/src/assets/mobile.png" */}
+                <img src={mobileImg} alt="Mobile app" style={{
                   height: "72vh", width: "auto", objectFit: "contain",
                   filter: "drop-shadow(0 20px 50px rgba(0,200,255,0.3))",
                   pointerEvents: "none", display: "block",
                 }} />
               </div>
 
-              {/* 4 Project cards — fill remaining space to neon line */}
               <div style={{ flex: 1, display: "flex", gap: "10px", height: "72vh", pointerEvents: "auto" }}>
                 {projects.map((proj, idx) => <ProjectCard key={idx} proj={proj} idx={idx} />)}
               </div>
             </div>
           )}
 
-          {/* ── CARD ROW — full width from neon line to right edge (RIGHT clicked) ── */}
           {rightClicked && (
             <div style={{
-              position: "absolute", top: 0, bottom: 0,
-              right: 0,
+              position: "absolute", top: 0, bottom: 0, right: 0,
               width: "calc(100% - 48px)",
               display: "flex", flexDirection: "row", alignItems: "center",
               gap: "10px", padding: "0 0 0 12px",
               zIndex: 18, pointerEvents: "none",
             }}>
-              {/* 4 Web project cards — fill space from neon line to laptop image */}
               <div style={{ flex: 1, display: "flex", gap: "10px", height: "72vh", pointerEvents: "auto" }}>
                 {webProjects.map((proj, idx) => <ProjectCard key={idx} proj={proj} idx={idx} />)}
               </div>
 
-              {/* Laptop image — natural size, on the right */}
               <div style={{
                 flexShrink: 0,
                 position: "relative",
                 display: "flex", alignItems: "center", justifyContent: "center",
                 animation: "dealCardRight 0.4s cubic-bezier(0.22,1,0.36,1) 0s both",
               }}>
-                <img src="/src/assets/laptop.png" alt="Laptop app" style={{
+                {/* ✅ FIXED: was src="/src/assets/laptop.png" */}
+                <img src={laptopImg} alt="Laptop app" style={{
                   height: "65vh", width: "auto", objectFit: "contain",
                   filter: "drop-shadow(0 20px 50px rgba(100,150,255,0.3))",
                   pointerEvents: "none", display: "block",
                 }} />
-                {/* New overlay text on image when rightClicked */}
                 <div style={{
                   position: "absolute", top: "31%", left: "50%",
                   transform: "translate(-50%, -50%)",
@@ -332,7 +319,6 @@ export default function Index() {
             style={{ flex: 1, height: "100%", cursor: rightClicked ? "default" : "pointer", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}
             onClick={() => { if (rightClicked) return; setLeftClicked(prev => !prev); setRightClicked(false); }}
           >
-            {/* Left image wrapper — when not clicked: centered. When clicked: becomes card row */}
             <div style={{
               position: "absolute", inset: 0,
               display: "flex", alignItems: "center", justifyContent: "center",
@@ -340,8 +326,6 @@ export default function Index() {
               transition: "transform 0.65s cubic-bezier(0.4,0,0.2,1)",
               zIndex: 2,
             }}>
-
-              {/* ── DEFAULT STATE: centered mobile image ── */}
               <div style={{
                 position: "absolute", inset: 0,
                 display: "flex", alignItems: "center", justifyContent: "center",
@@ -349,18 +333,16 @@ export default function Index() {
                 transition: "opacity 0.4s ease",
                 pointerEvents: "none",
               }}>
-                <img src="/src/assets/mobile.png" alt="Mobile app" style={{
+                {/* ✅ FIXED: was src="/src/assets/mobile.png" */}
+                <img src={mobileImg} alt="Mobile app" style={{
                   height: "72vh", width: "auto", objectFit: "contain",
                   animation: currentSection === 1 ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both" : "none",
                   filter: "drop-shadow(0 20px 50px rgba(0,200,255,0.3))",
                   pointerEvents: "none", display: "block",
                 }} />
               </div>
-
-
             </div>
 
-            {/* "IN YOUR POCKET" normal label */}
             <div style={{
               position: "absolute", top: "50%", left: "35px",
               transform: "translateY(-50%)",
@@ -379,7 +361,6 @@ export default function Index() {
             style={{ flex: 1, height: "100%", cursor: leftClicked ? "default" : "pointer", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}
             onClick={() => { if (leftClicked) return; setRightClicked(prev => !prev); setLeftClicked(false); }}
           >
-            {/* Right image wrapper */}
             <div style={{
               position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
               width: "100%", height: "100%",
@@ -387,13 +368,13 @@ export default function Index() {
               transition: "transform 0.65s cubic-bezier(0.4,0,0.2,1)",
               zIndex: 2,
             }}>
-              <img src="/src/assets/laptop.png" alt="Laptop app" style={{
+              {/* ✅ FIXED: was src="/src/assets/laptop.png" */}
+              <img src={laptopImg} alt="Laptop app" style={{
                 height: "65vh", width: "auto", objectFit: "contain",
                 animation: currentSection === 1 ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both" : "none",
                 filter: "drop-shadow(0 20px 50px rgba(100,150,255,0.3))",
                 pointerEvents: "none", display: "block", position: "relative", zIndex: 2,
               }} />
-              {/* Overlay text on right image */}
               <div style={{
                 position: "absolute", top: "50%", left: "50%",
                 transform: "translate(-50%, -50%)",
@@ -406,7 +387,6 @@ export default function Index() {
               </div>
             </div>
 
-            {/* "ON EVERY SCREEN" normal label */}
             <div style={{
               position: "absolute", top: "50%", right: "43px",
               transform: "translateY(-50%)",
@@ -420,11 +400,6 @@ export default function Index() {
             </div>
           </div>
 
-          {/* ══════════════════════════════════════════════
-              EDGE LABEL: "ON EVERY SCREEN" at right edge
-              — visible when LEFT clicked
-              — clickable: switches to right state
-              ══════════════════════════════════════════════ */}
           <div
             onClick={(e) => { e.stopPropagation(); setRightClicked(true); setLeftClicked(false); }}
             onMouseEnter={() => setHoverEdgeLabel(true)}
@@ -451,7 +426,6 @@ export default function Index() {
                 {char === " " ? "\u00A0" : char}
               </span>
             ))}
-            {/* Hover hint arrow */}
             {leftClicked && (
               <div style={{
                 marginTop: "6px",
@@ -464,11 +438,6 @@ export default function Index() {
             )}
           </div>
 
-          {/* ══════════════════════════════════════════════
-              EDGE LABEL: "IN YOUR POCKET" at left edge
-              — visible when RIGHT clicked
-              — clickable: switches to left state
-              ══════════════════════════════════════════════ */}
           <div
             onClick={(e) => { e.stopPropagation(); setLeftClicked(true); setRightClicked(false); }}
             onMouseEnter={() => setHoverEdgeLabel(true)}
@@ -484,7 +453,6 @@ export default function Index() {
               zIndex: 25,
             }}
           >
-            {/* Hover hint arrow */}
             {rightClicked && (
               <div style={{
                 marginBottom: "6px",
@@ -507,10 +475,6 @@ export default function Index() {
             ))}
           </div>
 
-          {/* ══════════════════════════════════════════════
-              EXITED IMAGE ZONE (right side when left clicked)
-              — hoverable + clickable to reset
-              ══════════════════════════════════════════════ */}
           {leftClicked && (
             <div
               onClick={(e) => { e.stopPropagation(); setLeftClicked(false); setRightClicked(false); }}
@@ -519,12 +483,10 @@ export default function Index() {
               style={{
                 position: "absolute", top: 0, right: 0,
                 width: "48px", height: "100%",
-                cursor: "pointer",
-                zIndex: 24,
+                cursor: "pointer", zIndex: 24,
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
-              {/* Pulsing glow hint on hover */}
               <div style={{
                 width: "2px", height: "60%",
                 background: "linear-gradient(180deg, transparent, rgba(0,229,255,0.6), transparent)",
@@ -536,10 +498,6 @@ export default function Index() {
             </div>
           )}
 
-          {/* ══════════════════════════════════════════════
-              EXITED IMAGE ZONE (left side when right clicked)
-              — hoverable + clickable to reset
-              ══════════════════════════════════════════════ */}
           {rightClicked && (
             <div
               onClick={(e) => { e.stopPropagation(); setLeftClicked(false); setRightClicked(false); }}
@@ -548,8 +506,7 @@ export default function Index() {
               style={{
                 position: "absolute", top: 0, left: 0,
                 width: "48px", height: "100%",
-                cursor: "pointer",
-                zIndex: 24,
+                cursor: "pointer", zIndex: 24,
                 display: "flex", alignItems: "center", justifyContent: "center",
               }}
             >
