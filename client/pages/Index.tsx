@@ -15,6 +15,7 @@ export default function Index() {
   const [currentSection, setCurrentSection] = useState(0);
   const [isAnimating, setIsAnimating]       = useState(false);
   const [hoveredImage, setHoveredImage] = useState<"left" | "right" | null>(null);
+  const [section2Clicked, setSection2Clicked] = useState(false);
   const totalSections = 3;
 
   useEffect(() => {
@@ -178,6 +179,12 @@ export default function Index() {
     setHoveredImage(null);
   };
 
+  const handleSection2Click = () => {
+    if (hoveredImage === "left" || hoveredImage === "right") {
+      setSection2Clicked(true);
+    }
+  };
+
   const getTransform = (idx: number) => {
     if (currentSection === idx) return "translateY(0px) scale(1)";
     if (currentSection > idx)   return "translateY(-70px) scale(0.96)";
@@ -238,7 +245,8 @@ export default function Index() {
     ref={section2Ref}
     onMouseMove={handleMouseMoveSection2}
     onMouseLeave={handleMouseLeaveSection2}
-    style={{ ...sectionStyle(1) }}
+    onClick={handleSection2Click}
+    style={{ ...sectionStyle(1), cursor: hoveredImage === "left" || hoveredImage === "right" ? "pointer" : "default" }}
   >
     <div
       style={{
@@ -249,11 +257,12 @@ export default function Index() {
         backgroundSize: "75% 100%",
         backgroundPosition: "left",
         backgroundRepeat: "no-repeat",
-        animation: currentSection === 1 ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both" : "none",
+        animation: section2Clicked ? "slideOutLeft 2.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards" : (currentSection === 1 ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both" : "none"),
         zIndex: 4,
         pointerEvents: "none",
-        transition: "filter 0.3s ease-out",
         filter: hoveredImage === "left" ? "brightness(1.15)" : "brightness(1)",
+        transform: hoveredImage === "left" ? "scale(1.05)" : "scale(1)",
+        transition: "filter 0.3s ease-out, transform 0.3s ease-out",
       }}
     />
     <div
@@ -266,11 +275,12 @@ export default function Index() {
         backgroundPosition: "right",
         backgroundRepeat: "no-repeat",
         mixBlendMode: "darken",
-        animation: currentSection === 1 ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both" : "none",
+        animation: section2Clicked ? "slideOutRight 2.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards" : (currentSection === 1 ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both" : "none"),
         zIndex: 3,
         pointerEvents: "none",
-        transition: "filter 0.3s ease-out",
         filter: hoveredImage === "right" ? "brightness(1.15)" : "brightness(1)",
+        transform: hoveredImage === "right" ? "scale(1.05)" : "scale(1)",
+        transition: "filter 0.3s ease-out, transform 0.3s ease-out",
       }}
     />
 
@@ -340,6 +350,14 @@ export default function Index() {
         @keyframes pulseGlow {
           0%, 100% { opacity: 0.4; transform: scaleY(0.9); }
           50%       { opacity: 1;   transform: scaleY(1.1); }
+        }
+        @keyframes slideOutLeft {
+          0%   { opacity: 1; transform: translateX(0); }
+          100% { opacity: 0; transform: translateX(-150%); }
+        }
+        @keyframes slideOutRight {
+          0%   { opacity: 1; transform: translateX(0); }
+          100% { opacity: 0; transform: translateX(150%); }
         }
       `}</style>
     </div>
