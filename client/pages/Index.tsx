@@ -1,71 +1,4 @@
 import React, { useEffect, useRef, useState } from "react";
-import mobileImg from "../../src/assets/mobile.png";
-import laptopImg from "../../src/assets/laptop.png";
-
-const projects = [
-  { title: "Project Alpha", desc: "E-commerce platform with real-time inventory", tags: ["React", "Node.js", "MongoDB"] },
-  { title: "Project Beta",  desc: "AI-powered dashboard for analytics",           tags: ["Next.js", "Python", "TensorFlow"] },
-  { title: "Project Gamma", desc: "Cross-platform mobile banking app",            tags: ["Flutter", "Firebase", "Dart"] },
-  { title: "Project Delta", desc: "Real-time collaboration tool for teams",       tags: ["Vue.js", "WebSockets", "Redis"] },
-];
-
-const webProjects = [
-  { title: "Web Alpha",  desc: "SaaS landing page with conversion optimization",  tags: ["React", "Tailwind", "Framer"] },
-  { title: "Web Beta",   desc: "Admin dashboard with real-time data streams",     tags: ["Next.js", "Chart.js", "Prisma"] },
-  { title: "Web Gamma",  desc: "Multi-tenant CRM system for enterprise clients",  tags: ["TypeScript", "PostgreSQL", "Redis"] },
-  { title: "Web Delta",  desc: "Interactive portfolio with 3D animations",        tags: ["Three.js", "GSAP", "Vite"] },
-];
-
-function ProjectCard({ proj, idx }: { proj: typeof projects[0]; idx: number }) {
-  const [hovered, setHovered] = useState(false);
-  return (
-    <div
-      onMouseEnter={() => setHovered(true)}
-      onMouseLeave={() => setHovered(false)}
-      style={{
-        flex: 1, minWidth: 0, height: "72vh", borderRadius: "14px",
-        background: "linear-gradient(160deg, rgba(5,18,50,0.95) 0%, rgba(2,10,30,0.98) 100%)",
-        border: hovered ? "1px solid rgba(0,229,255,0.7)" : "1px solid rgba(0,229,255,0.15)",
-        boxShadow: hovered
-          ? "0 0 24px rgba(0,229,255,0.25), 0 16px 40px rgba(0,0,0,0.6), inset 0 1px 0 rgba(255,255,255,0.05)"
-          : "0 4px 20px rgba(0,0,0,0.4), inset 0 1px 0 rgba(255,255,255,0.03)",
-        transform: hovered ? "translateY(-6px) scale(1.02)" : "translateY(0px) scale(1)",
-        transition: "transform 0.3s ease, box-shadow 0.3s ease, border 0.3s ease",
-        animation: `dealCard 0.5s cubic-bezier(0.22,1,0.36,1) ${0.1 + idx * 0.12}s both`,
-        position: "relative", overflow: "hidden",
-        cursor: "pointer",
-        display: "flex", flexDirection: "column", justifyContent: "space-between",
-        padding: "16px 12px",
-      }}
-    >
-      <div style={{ position: "absolute", top: 0, left: "20%", right: "20%", height: "1px",
-        background: hovered ? "linear-gradient(90deg, transparent, #00EEFF, transparent)" : "linear-gradient(90deg, transparent, rgba(0,229,255,0.3), transparent)",
-        transition: "background 0.3s ease" }} />
-      <div style={{ fontFamily: "'Bebas Neue', sans-serif", fontSize: "2.5rem",
-        color: hovered ? "rgba(0,229,255,0.15)" : "rgba(255,255,255,0.04)",
-        lineHeight: 1, transition: "color 0.3s ease", userSelect: "none" }}>
-        0{idx + 1}
-      </div>
-      <div>
-        <p style={{ fontFamily: "'Italiana', serif", fontSize: "clamp(0.8rem, 1.2vw, 1rem)",
-          color: hovered ? "#FFFFFF" : "#D0D0D0", fontWeight: "700", margin: "0 0 6px",
-          transition: "color 0.3s ease", lineHeight: 1.2 }}>{proj.title}</p>
-        <p style={{ fontFamily: "Calibri, sans-serif", fontSize: "clamp(0.6rem, 0.9vw, 0.75rem)",
-          color: "#808080", margin: "0 0 10px", lineHeight: 1.4 }}>{proj.desc}</p>
-        <div style={{ display: "flex", flexWrap: "wrap", gap: "4px" }}>
-          {proj.tags.map((tag, t) => (
-            <span key={t} style={{ fontFamily: "Calibri, sans-serif", fontSize: "0.55rem",
-              color: "#00EEFF", border: "1px solid rgba(0,229,255,0.3)",
-              borderRadius: "3px", padding: "1px 5px", letterSpacing: "0.05em" }}>{tag}</span>
-          ))}
-        </div>
-      </div>
-      <div style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: "40%",
-        background: hovered ? "radial-gradient(ellipse at 50% 100%, rgba(0,229,255,0.08) 0%, transparent 70%)" : "none",
-        transition: "background 0.3s ease", pointerEvents: "none" }} />
-    </div>
-  );
-}
 
 export default function Index() {
   const leftConicRef  = useRef<HTMLDivElement>(null);
@@ -76,10 +9,6 @@ export default function Index() {
 
   const [currentSection, setCurrentSection] = useState(0);
   const [isAnimating, setIsAnimating]       = useState(false);
-  const [leftClicked, setLeftClicked]       = useState(false);
-  const [rightClicked, setRightClicked]     = useState(false);
-  const [hoverEdgeLabel, setHoverEdgeLabel] = useState(false);
-  const [hoverExitedImg, setHoverExitedImg] = useState(false);
   const totalSections = 3;
 
   useEffect(() => {
@@ -140,7 +69,7 @@ export default function Index() {
   }, []);
 
   useEffect(() => {
-    if (currentSection !== 1) { setLeftClicked(false); setRightClicked(false); }
+    if (currentSection !== 1) { }
   }, [currentSection]);
 
   const getTransform = (idx: number) => {
@@ -159,22 +88,6 @@ export default function Index() {
     zIndex: currentSection === idx ? 20 : 5,
     willChange: "opacity, transform",
   });
-
-  const lineLeft = leftClicked ? "calc(100% - 48px)" : rightClicked ? "48px" : "50%";
-
-  const labelChars = (str: string, size: string, align: "left" | "right") =>
-    str.split("").map((char, i) => (
-      <span key={i} style={{
-        fontFamily: "'Bebas Neue', sans-serif", fontSize: size, fontWeight: "700",
-        display: "inline-block", transform: "scaleX(1.5)",
-        letterSpacing: "0.25em", lineHeight: 1.05, whiteSpace: "pre",
-        background: "linear-gradient(135deg, #C8D8E8 0%, #A8C4D8 40%, #90B8D0 70%, #B0C8DC 100%)",
-        WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-        animation: currentSection === 1 ? `letterDrop 0.4s cubic-bezier(0.22,1,0.36,1) ${0.5 + i * 0.055}s both` : "none",
-      }}>
-        {char === " " ? "\u00A0" : char}
-      </span>
-    ));
 
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden">
@@ -214,316 +127,38 @@ export default function Index() {
         </div>
       </div>
 
-      {/* ── SECTION 2 ── */}
-      <div style={{ ...sectionStyle(1) }}>
-        <div style={{ position: "relative", width: "100%", height: "100%", display: "flex" }}>
-
-          <div style={{
-            position: "absolute", top: 0, bottom: 0, left: 0,
-            width: leftClicked ? "calc(100% - 48px)" : "0%",
-            background: "rgba(2,8,24,0.88)",
-            transition: "width 0.65s cubic-bezier(0.4,0,0.2,1)",
-            pointerEvents: "none", zIndex: 8,
-          }} />
-          <div style={{
-            position: "absolute", top: 0, bottom: 0, right: 0,
-            width: rightClicked ? "calc(100% - 48px)" : "0%",
-            background: "rgba(2,8,24,0.88)",
-            transition: "width 0.65s cubic-bezier(0.4,0,0.2,1)",
-            pointerEvents: "none", zIndex: 8,
-          }} />
-
-          <div style={{
-            position: "absolute", top: 0,
-            left: lineLeft,
-            transform: "translateX(-50%)",
-            width: "1px", height: "100%",
-            background: "linear-gradient(180deg, transparent 0%, #00E5FF 20%, #00E5FF 80%, transparent 100%)",
-            boxShadow: "0 0 6px 1px rgba(0,229,255,0.6), 0 0 18px 2px rgba(0,229,255,0.25)",
-            transition: "left 0.65s cubic-bezier(0.4,0,0.2,1)",
-            zIndex: 16, pointerEvents: "none",
-          }} />
-
-          {leftClicked && (
-            <div style={{
-              position: "absolute", top: 0, bottom: 0, left: 0,
-              width: "calc(100% - 48px)",
-              display: "flex", flexDirection: "row", alignItems: "center",
-              gap: "10px", padding: "0 12px",
-              zIndex: 18, pointerEvents: "none",
-            }}>
-              <div style={{
-                flexShrink: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                animation: "dealCard 0.4s cubic-bezier(0.22,1,0.36,1) 0s both",
-              }}>
-                {/* ✅ FIXED: was src="/src/assets/mobile.png" */}
-                <img src={mobileImg} alt="Mobile app" style={{
-                  height: "72vh", width: "auto", objectFit: "contain",
-                  filter: "drop-shadow(0 20px 50px rgba(0,200,255,0.3))",
-                  pointerEvents: "none", display: "block",
-                }} />
-              </div>
-
-              <div style={{ flex: 1, display: "flex", gap: "10px", height: "72vh", pointerEvents: "auto" }}>
-                {projects.map((proj, idx) => <ProjectCard key={idx} proj={proj} idx={idx} />)}
-              </div>
-            </div>
-          )}
-
-          {rightClicked && (
-            <div style={{
-              position: "absolute", top: 0, bottom: 0, right: 0,
-              width: "calc(100% - 48px)",
-              display: "flex", flexDirection: "row", alignItems: "center",
-              gap: "10px", padding: "0 0 0 12px",
-              zIndex: 18, pointerEvents: "none",
-            }}>
-              <div style={{ flex: 1, display: "flex", gap: "10px", height: "72vh", pointerEvents: "auto" }}>
-                {webProjects.map((proj, idx) => <ProjectCard key={idx} proj={proj} idx={idx} />)}
-              </div>
-
-              <div style={{
-                flexShrink: 0,
-                position: "relative",
-                display: "flex", alignItems: "center", justifyContent: "center",
-                animation: "dealCardRight 0.4s cubic-bezier(0.22,1,0.36,1) 0s both",
-              }}>
-                {/* ✅ FIXED: was src="/src/assets/laptop.png" */}
-                <img src={laptopImg} alt="Laptop app" style={{
-                  height: "65vh", width: "auto", objectFit: "contain",
-                  filter: "drop-shadow(0 20px 50px rgba(100,150,255,0.3))",
-                  pointerEvents: "none", display: "block",
-                }} />
-                <div style={{
-                  position: "absolute", top: "31%", left: "50%",
-                  transform: "translate(-50%, -50%)",
-                  color: "#000080",
-                  fontWeight: "700",
-                  fontSize: "clamp(1.2rem, 2.5vw, 1.8rem)",
-                  pointerEvents: "none",
-                  textAlign: "center",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  animation: "textIn 0.6s ease both",
-                }}>
-                  ON EVERY SCREEN
-                </div>
-              </div>
-            </div>
-          )}
-
-          {/* ── LEFT HALF ── */}
-          <div
-            style={{ flex: 1, height: "100%", cursor: rightClicked ? "default" : "pointer", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}
-            onClick={() => { if (rightClicked) return; setLeftClicked(prev => !prev); setRightClicked(false); }}
-          >
-            <div style={{
-              position: "absolute", inset: 0,
-              display: "flex", alignItems: "center", justifyContent: "center",
-              transform: rightClicked ? "translateX(-130%)" : "translateX(0%)",
-              transition: "transform 0.65s cubic-bezier(0.4,0,0.2,1)",
-              zIndex: 2,
-            }}>
-              <div style={{
-                position: "absolute", inset: 0,
-                display: "flex", alignItems: "center", justifyContent: "center",
-                opacity: leftClicked ? 0 : 1,
-                transition: "opacity 0.4s ease",
-                pointerEvents: "none",
-              }}>
-                {/* ✅ FIXED: was src="/src/assets/mobile.png" */}
-                <img src={mobileImg} alt="Mobile app" style={{
-                  height: "72vh", width: "auto", objectFit: "contain",
-                  animation: currentSection === 1 ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both" : "none",
-                  filter: "drop-shadow(0 20px 50px rgba(0,200,255,0.3))",
-                  pointerEvents: "none", display: "block",
-                }} />
-              </div>
-            </div>
-
-            <div style={{
-              position: "absolute", top: "50%", left: "35px",
-              transform: "translateY(-50%)",
-              display: "flex", flexDirection: "column", alignItems: "flex-start",
-              pointerEvents: "none",
-              opacity: leftClicked || rightClicked ? 0 : 1,
-              transition: "opacity 0.35s ease",
-              zIndex: 17,
-            }}>
-              {labelChars("IN YOUR POCKET", "2.6rem", "right")}
-            </div>
-          </div>
-
-          {/* ── RIGHT HALF ── */}
-          <div
-            style={{ flex: 1, height: "100%", cursor: leftClicked ? "default" : "pointer", position: "relative", overflow: "hidden", display: "flex", alignItems: "center", justifyContent: "center" }}
-            onClick={() => { if (leftClicked) return; setRightClicked(prev => !prev); setLeftClicked(false); }}
-          >
-            <div style={{
-              position: "relative", display: "flex", alignItems: "center", justifyContent: "center",
-              width: "100%", height: "100%",
-              transform: rightClicked ? "translateX(130%)" : leftClicked ? "translateX(130%)" : "translateX(0%)",
-              transition: "transform 0.65s cubic-bezier(0.4,0,0.2,1)",
-              zIndex: 2,
-            }}>
-              {/* ✅ FIXED: was src="/src/assets/laptop.png" */}
-              <img src={laptopImg} alt="Laptop app" style={{
-                height: "65vh", width: "auto", objectFit: "contain",
-                animation: currentSection === 1 ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both" : "none",
-                filter: "drop-shadow(0 20px 50px rgba(100,150,255,0.3))",
-                pointerEvents: "none", display: "block", position: "relative", zIndex: 2,
-              }} />
-              <div style={{
-                position: "absolute", top: "50%", left: "50%",
-                transform: "translate(-50%, -50%)",
-                display: "flex", flexDirection: "column", alignItems: "center", justifyContent: "center",
-                opacity: rightClicked ? 0 : 1,
-                transition: "opacity 0.6s ease 0.25s",
-                pointerEvents: "none", zIndex: 10,
-                textAlign: "center", width: "100%", padding: "2rem 1.5rem",
-              }}>
-              </div>
-            </div>
-
-            <div style={{
-              position: "absolute", top: "50%", right: "43px",
-              transform: "translateY(-50%)",
-              display: "flex", flexDirection: "column", alignItems: "flex-end",
-              pointerEvents: "none",
-              opacity: leftClicked || rightClicked ? 0 : 1,
-              transition: "opacity 0.35s ease",
-              zIndex: 17,
-            }}>
-              {labelChars("ON EVERY SCREEN", "2.6rem", "left")}
-            </div>
-          </div>
-
-          <div
-            onClick={(e) => { e.stopPropagation(); setRightClicked(true); setLeftClicked(false); }}
-            onMouseEnter={() => setHoverEdgeLabel(true)}
-            onMouseLeave={() => setHoverEdgeLabel(false)}
-            style={{
-              position: "absolute", top: "50%", right: "10px",
-              transform: `translateY(-50%) ${leftClicked && hoverEdgeLabel ? "translateX(-4px)" : "translateX(0px)"}`,
-              display: "flex", flexDirection: "column", alignItems: "flex-end",
-              cursor: leftClicked ? "pointer" : "default",
-              opacity: leftClicked ? 1 : 0,
-              transition: "opacity 0.5s ease 0.35s, transform 0.3s ease, filter 0.3s ease",
-              filter: leftClicked && hoverEdgeLabel ? "drop-shadow(0 0 10px rgba(0,229,255,0.9)) brightness(1.4)" : "none",
-              zIndex: 25,
-            }}
-          >
-            {"ON EVERY SCREEN".split("").map((char, i) => (
-              <span key={i} style={{
-                fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.05rem", fontWeight: "700",
-                display: "inline-block", transform: "scaleX(1.5)",
-                letterSpacing: "0.2em", lineHeight: 1.1, whiteSpace: "pre",
-                background: "linear-gradient(135deg, #C8D8E8 0%, #A8C4D8 40%, #90B8D0 70%, #B0C8DC 100%)",
-                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-              }}>
-                {char === " " ? "\u00A0" : char}
-              </span>
-            ))}
-            {leftClicked && (
-              <div style={{
-                marginTop: "6px",
-                opacity: hoverEdgeLabel ? 1 : 0,
-                transition: "opacity 0.2s ease",
-                display: "flex", justifyContent: "flex-end",
-              }}>
-                <div style={{ width: 10, height: 10, borderRight: "1.5px solid #00EEFF", borderBottom: "1.5px solid #00EEFF", transform: "rotate(-45deg)", opacity: 0.85 }} />
-              </div>
-            )}
-          </div>
-
-          <div
-            onClick={(e) => { e.stopPropagation(); setLeftClicked(true); setRightClicked(false); }}
-            onMouseEnter={() => setHoverEdgeLabel(true)}
-            onMouseLeave={() => setHoverEdgeLabel(false)}
-            style={{
-              position: "absolute", top: "50%", left: "10px",
-              transform: `translateY(-50%) ${rightClicked && hoverEdgeLabel ? "translateX(4px)" : "translateX(0px)"}`,
-              display: "flex", flexDirection: "column", alignItems: "flex-start",
-              cursor: rightClicked ? "pointer" : "default",
-              opacity: rightClicked ? 1 : 0,
-              transition: "opacity 0.5s ease 0.35s, transform 0.3s ease, filter 0.3s ease",
-              filter: rightClicked && hoverEdgeLabel ? "drop-shadow(0 0 10px rgba(0,229,255,0.9)) brightness(1.4)" : "none",
-              zIndex: 25,
-            }}
-          >
-            {rightClicked && (
-              <div style={{
-                marginBottom: "6px",
-                opacity: hoverEdgeLabel ? 1 : 0,
-                transition: "opacity 0.2s ease",
-              }}>
-                <div style={{ width: 10, height: 10, borderLeft: "1.5px solid #00EEFF", borderTop: "1.5px solid #00EEFF", transform: "rotate(-45deg)", opacity: 0.85 }} />
-              </div>
-            )}
-            {"IN YOUR POCKET".split("").map((char, i) => (
-              <span key={i} style={{
-                fontFamily: "'Bebas Neue', sans-serif", fontSize: "1.05rem", fontWeight: "700",
-                display: "inline-block", transform: "scaleX(1.5)",
-                letterSpacing: "0.2em", lineHeight: 1.1, whiteSpace: "pre",
-                background: "linear-gradient(135deg, #C8D8E8 0%, #A8C4D8 40%, #90B8D0 70%, #B0C8DC 100%)",
-                WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text",
-              }}>
-                {char === " " ? "\u00A0" : char}
-              </span>
-            ))}
-          </div>
-
-          {leftClicked && (
-            <div
-              onClick={(e) => { e.stopPropagation(); setLeftClicked(false); setRightClicked(false); }}
-              onMouseEnter={() => setHoverExitedImg(true)}
-              onMouseLeave={() => setHoverExitedImg(false)}
-              style={{
-                position: "absolute", top: 0, right: 0,
-                width: "48px", height: "100%",
-                cursor: "pointer", zIndex: 24,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-            >
-              <div style={{
-                width: "2px", height: "60%",
-                background: "linear-gradient(180deg, transparent, rgba(0,229,255,0.6), transparent)",
-                opacity: hoverExitedImg ? 1 : 0,
-                transition: "opacity 0.3s ease",
-                animation: hoverExitedImg ? "pulseGlow 1.2s ease-in-out infinite" : "none",
-                borderRadius: "2px",
-              }} />
-            </div>
-          )}
-
-          {rightClicked && (
-            <div
-              onClick={(e) => { e.stopPropagation(); setLeftClicked(false); setRightClicked(false); }}
-              onMouseEnter={() => setHoverExitedImg(true)}
-              onMouseLeave={() => setHoverExitedImg(false)}
-              style={{
-                position: "absolute", top: 0, left: 0,
-                width: "48px", height: "100%",
-                cursor: "pointer", zIndex: 24,
-                display: "flex", alignItems: "center", justifyContent: "center",
-              }}
-            >
-              <div style={{
-                width: "2px", height: "60%",
-                background: "linear-gradient(180deg, transparent, rgba(0,229,255,0.6), transparent)",
-                opacity: hoverExitedImg ? 1 : 0,
-                transition: "opacity 0.3s ease",
-                animation: hoverExitedImg ? "pulseGlow 1.2s ease-in-out infinite" : "none",
-                borderRadius: "2px",
-              }} />
-            </div>
-          )}
-
-        </div>
-      </div>
-
+     {/* ── SECTION 2 ── */}
+  <div style={{ ...sectionStyle(1) }}>
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        backgroundImage: "url('/left.png')",
+        backgroundSize: "75% 100%",
+        backgroundPosition: "left",
+        backgroundRepeat: "no-repeat",
+        animation: currentSection === 1 ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both" : "none",
+        zIndex: 4,
+        pointerEvents: "none",
+      }}
+    />
+    <div
+      style={{
+        position: "absolute",
+        inset: 0,
+        width: "100%",
+        backgroundImage: "url('/right.png')",
+        backgroundSize: "78% 100%",
+        backgroundPosition: "right",
+        backgroundRepeat: "no-repeat",
+        mixBlendMode: "darken",
+        animation: currentSection === 1 ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both" : "none",
+        zIndex: 3,
+        pointerEvents: "none",
+      }}
+  />
+</div>
       {/* ── SECTION 3 ── */}
       <div style={{ ...sectionStyle(2) }}>
         <div className="text-center px-8">
