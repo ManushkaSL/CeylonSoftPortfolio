@@ -6,9 +6,15 @@ export default function Index() {
   const leftLinearRef  = useRef<HTMLDivElement>(null);
   const rightLinearRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
+  const section2Ref = useRef<HTMLDivElement>(null);
+  const leftImgRef = useRef<HTMLImageElement>(null);
+  const rightImgRef = useRef<HTMLImageElement>(null);
+  const leftCanvasRef = useRef<HTMLCanvasElement>(null);
+  const rightCanvasRef = useRef<HTMLCanvasElement>(null);
 
   const [currentSection, setCurrentSection] = useState(0);
   const [isAnimating, setIsAnimating]       = useState(false);
+  const [hoveredImage, setHoveredImage] = useState<"left" | "right" | null>(null);
   const totalSections = 3;
 
   useEffect(() => {
@@ -72,6 +78,106 @@ export default function Index() {
     if (currentSection !== 1) { }
   }, [currentSection]);
 
+  // Pixel detection for hover
+  useEffect(() => {
+    const loadImages = async () => {
+      try {
+        const leftImg = leftImgRef.current;
+        const rightImg = rightImgRef.current;
+        if (!leftImg || !rightImg) return;
+
+        // Load left image
+        await new Promise((resolve, reject) => {
+          leftImg.onload = resolve;
+          leftImg.onerror = reject;
+          leftImg.src = "/left.png";
+          leftImg.crossOrigin = "anonymous";
+        });
+
+        // Load right image
+        await new Promise((resolve, reject) => {
+          rightImg.onload = resolve;
+          rightImg.onerror = reject;
+          rightImg.src = "/right.png";
+          rightImg.crossOrigin = "anonymous";
+        });
+
+        // Create canvases for pixel detection
+        const leftCanvas = leftCanvasRef.current;
+        const rightCanvas = rightCanvasRef.current;
+        if (leftCanvas && rightCanvas) {
+          leftCanvas.width = leftImg.width;
+          leftCanvas.height = leftImg.height;
+          rightCanvas.width = rightImg.width;
+          rightCanvas.height = rightImg.height;
+
+          const leftCtx = leftCanvas.getContext("2d");
+          const rightCtx = rightCanvas.getContext("2d");
+          if (leftCtx && rightCtx) {
+            leftCtx.drawImage(leftImg, 0, 0);
+            rightCtx.drawImage(rightImg, 0, 0);
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load images:", err);
+      }
+    };
+
+    loadImages();
+  }, []);
+
+  const isPixelTransparent = (canvas: HTMLCanvasElement | null, x: number, y: number): boolean => {
+    if (!canvas) return true;
+    const ctx = canvas.getContext("2d");
+    if (!ctx) return true;
+    try {
+      const imageData = ctx.getImageData(x, y, 1, 1);
+      return imageData.data[3] < 128; // alpha channel
+    } catch {
+      return true;
+    }
+  };
+
+  const handleMouseMoveSection2 = (e: React.MouseEvent<HTMLDivElement>) => {
+    const section = section2Ref.current;
+    if (!section) return;
+
+    const rect = section.getBoundingClientRect();
+    const x = e.clientX - rect.left;
+    const y = e.clientY - rect.top;
+
+    const leftCanvas = leftCanvasRef.current;
+    const rightCanvas = rightCanvasRef.current;
+
+    if (!leftCanvas || !rightCanvas) return;
+
+    // For left image: positioned at left with 75% size
+    const leftImgX = Math.round((x / (rect.width * 0.75)) * leftCanvas.width);
+    const leftImgY = Math.round((y / rect.height) * leftCanvas.height);
+
+    // For right image: positioned at right with 78% size
+    // Right image starts at: rect.width - (rect.width * 0.78)
+    const rightStart = rect.width * (1 - 0.78);
+    const rightImgX = Math.round(((x - rightStart) / (rect.width * 0.78)) * rightCanvas.width);
+    const rightImgY = Math.round((y / rect.height) * rightCanvas.height);
+
+    const leftTransparent = isPixelTransparent(leftCanvas, leftImgX, leftImgY);
+    const rightTransparent = isPixelTransparent(rightCanvas, rightImgX, rightImgY);
+
+    // Prioritize left image if both are non-transparent (since it has higher zIndex)
+    if (!leftTransparent) {
+      setHoveredImage("left");
+    } else if (!rightTransparent) {
+      setHoveredImage("right");
+    } else {
+      setHoveredImage(null);
+    }
+  };
+
+  const handleMouseLeaveSection2 = () => {
+    setHoveredImage(null);
+  };
+
   const getTransform = (idx: number) => {
     if (currentSection === idx) return "translateY(0px) scale(1)";
     if (currentSection > idx)   return "translateY(-70px) scale(0.96)";
@@ -128,7 +234,12 @@ export default function Index() {
       </div>
 
      {/* ── SECTION 2 ── */}
-  <div style={{ ...sectionStyle(1) }}>
+  <div 
+    ref={section2Ref}
+    onMouseMove={handleMouseMoveSection2}
+    onMouseLeave={handleMouseLeaveSection2}
+    style={{ ...sectionStyle(1) }}
+  >
     <div
       style={{
         position: "absolute",
@@ -141,6 +252,8 @@ export default function Index() {
         animation: currentSection === 1 ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both" : "none",
         zIndex: 4,
         pointerEvents: "none",
+        transition: "filter 0.3s ease-out",
+        filter: hoveredImage === "left" ? "brightness(1.15)" : "brightness(1)",
       }}
     />
     <div
@@ -156,9 +269,17 @@ export default function Index() {
         animation: currentSection === 1 ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both" : "none",
         zIndex: 3,
         pointerEvents: "none",
+        transition: "filter 0.3s ease-out",
+        filter: hoveredImage === "right" ? "brightness(1.15)" : "brightness(1)",
       }}
-  />
-</div>
+    />
+
+    {/* Hidden images for pixel detection */}
+    <img ref={leftImgRef} style={{ display: "none" }} alt="left" />
+    <img ref={rightImgRef} style={{ display: "none" }} alt="right" />
+    <canvas ref={leftCanvasRef} style={{ display: "none" }} />
+    <canvas ref={rightCanvasRef} style={{ display: "none" }} />
+  </div>
       {/* ── SECTION 3 ── */}
       <div style={{ ...sectionStyle(2) }}>
         <div className="text-center px-8">
