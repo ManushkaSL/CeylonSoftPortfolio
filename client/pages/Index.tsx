@@ -16,6 +16,10 @@ export default function Index() {
   const [isAnimating, setIsAnimating]       = useState(false);
   const [hoveredImage, setHoveredImage] = useState<"left" | "right" | null>(null);
   const [section2Clicked, setSection2Clicked] = useState(false);
+  const [section2SlidingIn, setSection2SlidingIn] = useState(false);
+  const [hasReturnedFromProjects, setHasReturnedFromProjects] = useState(false);
+  const [projectsType, setProjectsType] = useState<"web" | "mobile" | null>(null);
+  const [isClosingProjects, setIsClosingProjects] = useState(false);
   const totalSections = 3;
 
   useEffect(() => {
@@ -112,8 +116,8 @@ export default function Index() {
           rightCanvas.width = rightImg.width;
           rightCanvas.height = rightImg.height;
 
-          const leftCtx = leftCanvas.getContext("2d");
-          const rightCtx = rightCanvas.getContext("2d");
+          const leftCtx = leftCanvas.getContext("2d", { willReadFrequently: true });
+          const rightCtx = rightCanvas.getContext("2d", { willReadFrequently: true });
           if (leftCtx && rightCtx) {
             leftCtx.drawImage(leftImg, 0, 0);
             rightCtx.drawImage(rightImg, 0, 0);
@@ -129,7 +133,7 @@ export default function Index() {
 
   const isPixelTransparent = (canvas: HTMLCanvasElement | null, x: number, y: number): boolean => {
     if (!canvas) return true;
-    const ctx = canvas.getContext("2d");
+    const ctx = canvas.getContext("2d", { willReadFrequently: true });
     if (!ctx) return true;
     try {
       const imageData = ctx.getImageData(x, y, 1, 1);
@@ -180,9 +184,28 @@ export default function Index() {
   };
 
   const handleSection2Click = () => {
-    if (hoveredImage === "left" || hoveredImage === "right") {
+    if (hoveredImage === "left") {
       setSection2Clicked(true);
+      setTimeout(() => setProjectsType("web"), 500);
+    } else if (hoveredImage === "right") {
+      setSection2Clicked(true);
+      setTimeout(() => setProjectsType("mobile"), 500);
     }
+  };
+
+  const closeProjectsModal = () => {
+    setIsClosingProjects(true);
+    setSection2Clicked(false);
+    setSection2SlidingIn(true);
+    setHasReturnedFromProjects(true);
+    setHoveredImage(null);
+    setTimeout(() => {
+      setProjectsType(null);
+      setIsClosingProjects(false);
+    }, 400);
+    setTimeout(() => {
+      setSection2SlidingIn(false);
+    }, 900);
   };
 
   const getTransform = (idx: number) => {
@@ -257,7 +280,11 @@ export default function Index() {
         backgroundSize: "75% 100%",
         backgroundPosition: "left",
         backgroundRepeat: "no-repeat",
-        animation: section2Clicked ? "slideOutLeft 2.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards" : (currentSection === 1 ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both" : "none"),
+        animation: section2Clicked
+          ? "slideOutLeft 5s cubic-bezier(0.22,0.62,0.36,1) forwards"
+          : section2SlidingIn
+            ? "slideInLeft 0.9s cubic-bezier(0.22,1,0.36,1) both"
+            : (currentSection === 1 && !hasReturnedFromProjects ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both" : "none"),
         zIndex: 4,
         pointerEvents: "none",
         filter: hoveredImage === "left" ? "brightness(1.15)" : "brightness(1)",
@@ -275,7 +302,11 @@ export default function Index() {
         backgroundPosition: "right",
         backgroundRepeat: "no-repeat",
         mixBlendMode: "darken",
-        animation: section2Clicked ? "slideOutRight 2.5s cubic-bezier(0.25,0.46,0.45,0.94) forwards" : (currentSection === 1 ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both" : "none"),
+        animation: section2Clicked
+          ? "slideOutRight 5s cubic-bezier(0.22,0.62,0.36,1) forwards"
+          : section2SlidingIn
+            ? "slideInRight 0.9s cubic-bezier(0.22,1,0.36,1) both"
+            : (currentSection === 1 && !hasReturnedFromProjects ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both" : "none"),
         zIndex: 3,
         pointerEvents: "none",
         filter: hoveredImage === "right" ? "brightness(1.15)" : "brightness(1)",
@@ -308,6 +339,172 @@ export default function Index() {
             style={{ width: i === currentSection ? 10 : 6, height: i === currentSection ? 10 : 6, borderRadius: "50%", background: i === currentSection ? "#00F2FF" : "rgba(255,255,255,0.3)", border: i === currentSection ? "none" : "1px solid rgba(255,255,255,0.2)", transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)", cursor: "pointer", padding: 0 }} />
         ))}
       </div>
+
+      {/* ── PROJECTS MODAL ── */}
+      {projectsType && (
+        <div style={{
+          position: "fixed",
+          inset: 0,
+          backgroundColor: "rgba(5, 13, 31, 0.95)",
+          zIndex: 100,
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "center",
+          animation: isClosingProjects ? "fadeOut 0.4s ease-out" : "fadeIn 0.6s ease-out",
+          backdropFilter: "blur(4px)",
+        }}>
+          <div style={{
+            width: "100vw",
+            minHeight: "100vh",
+            display: "flex",
+            flexDirection: "column",
+            alignItems: "center",
+            justifyContent: "flex-start",
+            paddingTop: "6rem",
+            animation: "popIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
+          }}>
+            <h1 style={{
+              textAlign: "center",
+              color: "#00F2FF",
+              fontFamily: "'Italiana', serif",
+              fontSize: "clamp(2rem, 6vw, 4rem)",
+              marginBottom: "3rem",
+              animation: "slideDown 0.8s ease-out",
+            }}>
+              {projectsType === "web" ? "Web Projects" : "Mobile Projects"}
+            </h1>
+
+            <div style={{
+              position: "relative",
+              width: "100%",
+              minHeight: "400px",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              padding: "2rem",
+            }}>
+              {(projectsType === "web"
+                ? [
+                    { title: "E-Commerce Platform", desc: "Full-stack React & Node.js" },
+                    { title: "Analytics Dashboard", desc: "Real-time data visualization" },
+                    { title: "CMS System", desc: "Headless content management" },
+                    { title: "Admin Dashboard", desc: "User management system" },
+                    { title: "Blog Engine", desc: "SEO-optimized publishing" },
+                  ]
+                : [
+                    { title: "Fitness Tracker App", desc: "React Native cross-platform" },
+                    { title: "Social Feed App", desc: "Real-time messaging system" },
+                    { title: "Weather Forecast", desc: "Live weather updates" },
+                    { title: "Music Streaming", desc: "Audio streaming platform" },
+                    { title: "Task Manager", desc: "Productivity & collaboration" },
+                  ]
+              ).map((project, idx) => {
+                // Final positions: Card1(left), Card3(center-left), Card5(center), Card4(center-right), Card2(right)
+                // Index mapping: 0=Card1, 1=Card2, 2=Card3, 3=Card4, 4=Card5
+                const finalOrder = [0, 2, 4, 3, 1]; // Order they appear in final layout
+                const finalPosition = finalOrder.indexOf(idx);
+                const cardSpacing = 320; // pixels between each card center
+                const centerOffset = (finalPosition - 2) * cardSpacing; // -2 to center Card5
+
+                let animationName = "";
+                if (idx === 0 || idx === 1) {
+                  animationName = "cardStage1";
+                } else if (idx === 2 || idx === 3) {
+                  animationName = "cardStage2";
+                } else if (idx === 4) {
+                  animationName = "cardStage3";
+                }
+
+                let startOffset = centerOffset;
+                // For first stage cards, calculate starting position close to center
+                // Using same spacing as final layout (320px between cards)
+                if (idx === 0 || idx === 2) {
+                  startOffset = -160; // Card 1 & 3 start with 320px spacing
+                } else if (idx === 1 || idx === 3) {
+                  startOffset = 160; // Card 2 & 4 start with 320px spacing
+                }
+
+                return (
+                    <div
+                      key={idx}
+                      style={{
+                        position: "absolute",
+                        width: "300px",
+                        height: "260px",
+                        display: "flex",
+                        flexDirection: "column",
+                        justifyContent: "center",
+                        background: "linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(26, 111, 255, 0.1))",
+                        border: "1px solid rgba(0, 242, 255, 0.2)",
+                        borderRadius: "12px",
+                        padding: "1.5rem",
+                        boxSizing: "border-box",
+                        animation: `${animationName} 4.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`,
+                        transition: "all 0.3s ease-out",
+                        cursor: "pointer",
+                        "--startX": `${startOffset}px`,
+                        "--finalX": `${centerOffset}px`,
+                      } as React.CSSProperties & { "--startX": string; "--finalX": string }}
+                    onMouseEnter={(e) => {
+                      e.currentTarget.style.borderColor = "#00F2FF";
+                      e.currentTarget.style.background = "linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(26, 111, 255, 0.2))";
+                      e.currentTarget.style.transform = "translateY(-10px)";
+                      e.currentTarget.style.boxShadow = "0 20px 40px rgba(0, 242, 255, 0.2)";
+                    }}
+                    onMouseLeave={(e) => {
+                      e.currentTarget.style.borderColor = "rgba(0, 242, 255, 0.2)";
+                      e.currentTarget.style.background = "linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(26, 111, 255, 0.1))";
+                      e.currentTarget.style.transform = "translateY(0)";
+                      e.currentTarget.style.boxShadow = "none";
+                    }}
+                  >
+                      <h2 style={{ color: "#00F2FF", marginBottom: "0.5rem", fontFamily: "'Italiana', serif", fontSize: "1.5rem" }}>
+                        {project.title}
+                      </h2>
+                      <p style={{ color: "#C0C0C0", fontFamily: "Calibri, 'Segoe UI', Arial", fontSize: "0.95rem" }}>
+                        {project.desc}
+                      </p>
+                    </div>
+                  );
+              })}
+            </div>
+            
+            <button
+              onClick={closeProjectsModal}
+              style={{
+                position: "absolute",
+                bottom: "3rem",
+                left: "50%",
+                transform: "translateX(-50%)",
+                background: "linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(26, 111, 255, 0.15))",
+                border: "2px solid #00F2FF",
+                color: "#00F2FF",
+                padding: "0.75rem 2rem",
+                borderRadius: "8px",
+                cursor: "pointer",
+                fontSize: "1rem",
+                fontFamily: "'Italiana', serif",
+                fontWeight: "bold",
+                letterSpacing: "0.1em",
+                transition: "all 0.3s ease-out",
+                marginTop: "2rem",
+              }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = "linear-gradient(135deg, rgba(0, 242, 255, 0.3), rgba(26, 111, 255, 0.3))";
+                e.currentTarget.style.boxShadow = "0 0 20px rgba(0, 242, 255, 0.4)";
+                e.currentTarget.style.transform = "translateX(-50%) scale(1.05)";
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = "linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(26, 111, 255, 0.15))";
+                e.currentTarget.style.boxShadow = "none";
+                e.currentTarget.style.transform = "translateX(-50%) scale(1)";
+              }}
+            >
+              Change Platform
+            </button>
+          </div>
+        </div>
+      )}
 
       <style>{`
         @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
@@ -358,6 +555,85 @@ export default function Index() {
         @keyframes slideOutRight {
           0%   { opacity: 1; transform: translateX(0); }
           100% { opacity: 0; transform: translateX(150%); }
+        }
+        @keyframes slideInLeft {
+          0%   { opacity: 0; transform: translateX(-150%); }
+          100% { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes slideInRight {
+          0%   { opacity: 0; transform: translateX(150%); }
+          100% { opacity: 1; transform: translateX(0); }
+        }
+        @keyframes fadeIn {
+          0%   { opacity: 0; }
+          100% { opacity: 1; }
+        }
+        @keyframes fadeOut {
+          0%   { opacity: 1; }
+          100% { opacity: 0; }
+        }
+        @keyframes popIn {
+          0%   { opacity: 0; transform: scale(0.8); }
+          100% { opacity: 1; transform: scale(1); }
+        }
+        @keyframes slideDown {
+          0%   { opacity: 0; transform: translateY(-30px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes slideInUp {
+          0%   { opacity: 0; transform: translateY(40px); }
+          100% { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes cardStage1 {
+          0% {
+            opacity: 0;
+            transform: scale(0.4) translateX(var(--startX));
+          }
+          10% {
+            opacity: 1;
+            transform: scale(1) translateX(var(--startX));
+          }
+          35% {
+            transform: scale(1) translateX(var(--startX));
+          }
+          100% {
+            transform: scale(1) translateX(var(--finalX));
+          }
+        }
+        @keyframes cardStage2 {
+          0% {
+            opacity: 0;
+            transform: scale(0.4) translateX(var(--startX));
+          }
+          35% {
+            opacity: 0;
+            transform: scale(0.4) translateX(var(--startX));
+          }
+          50% {
+            opacity: 1;
+            transform: scale(1) translateX(var(--startX));
+          }
+          100% {
+            transform: scale(1) translateX(var(--finalX));
+          }
+        }
+        @keyframes cardStage3 {
+          0% {
+            opacity: 0;
+            transform: scale(0.4) translateX(0);
+          }
+          75% {
+            opacity: 0;
+            transform: scale(0.4) translateX(0);
+          }
+          90% {
+            opacity: 1;
+            transform: scale(1) translateX(0);
+          }
+          100% {
+            opacity: 1;
+            transform: scale(1) translateX(0);
+          }
         }
       `}</style>
     </div>
