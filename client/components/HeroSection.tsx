@@ -1,4 +1,4 @@
-import React, { useEffect, useRef, useState, useMemo } from "react";
+import React, { useEffect, useRef, useState } from "react";
 
 interface HeroSectionProps {
   isActive: boolean;
@@ -6,51 +6,27 @@ interface HeroSectionProps {
 }
 
 const HEADING_WORDS = ["WE", "BUILD", "DIGITAL", "EXPERIENCES"];
-
-// Subtitle character definitions preserving original spacing
 const SUBTITLE_TEXT = "Where Performance Meets Design.";
 
 export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreClick }) => {
   const containerRef = useRef<HTMLDivElement>(null);
-  const headingRef = useRef<HTMLHeadingElement>(null);
   const subtitleRef = useRef<HTMLDivElement>(null);
 
-  // Spotlight and atmospheric animation references
-  const svgRef = useRef<SVGSVGElement>(null);
-  const leftBeamPathRef = useRef<SVGPathElement>(null);
-  const rightBeamPathRef = useRef<SVGPathElement>(null);
-  const centerBloomRef = useRef<SVGEllipseElement>(null);
-  const atmGlowRef = useRef<HTMLDivElement>(null);
-  const parallaxHeadingRef = useRef<HTMLDivElement>(null);
+  // Left & Right Conic and Linear elements for the signature dual fan spotlights
+  const leftConicRef = useRef<HTMLDivElement>(null);
+  const rightConicRef = useRef<HTMLDivElement>(null);
+  const leftLinearRef = useRef<HTMLDivElement>(null);
+  const rightLinearRef = useRef<HTMLDivElement>(null);
 
-  // Heading reflection overlay ref
-  const headingReflectionRef = useRef<HTMLDivElement>(null);
+  // Center convergence atmospheric bloom
+  const centerBloomRef = useRef<HTMLDivElement>(null);
+  const atmGlowRef = useRef<HTMLDivElement>(null);
 
   // Mouse normalized coordinates (0 to 1)
   const mouseNorm = useRef({ x: 0.5, y: 0.45 });
-  const mouseScreen = useRef({ x: 0, y: 0 });
   const isHoveringHero = useRef(false);
-  const isHoveringHeading = useRef(false);
 
-  // Lerped spotlight physics state
-  const focusState = useRef({
-    currentX: 50,
-    currentY: 44,
-    targetX: 50,
-    targetY: 44,
-    currentIntensity: 1.0,
-    targetIntensity: 1.0,
-    currentAtmX: 50,
-    currentAtmY: 45,
-    targetAtmX: 50,
-    targetAtmY: 45,
-    headingParallaxX: 0,
-    headingParallaxY: 0,
-  });
-
-  // State for character lifts in heading (character index -> lift in px)
-  const [charLifts, setCharLifts] = useState<{ [key: string]: number }>({});
-  // State for character illuminations in subtitle (character index -> 0 to 1 intensity)
+  // State for subtitle proximity illumination
   const [subtitleProximity, setSubtitleProximity] = useState<{ [key: number]: number }>({});
 
   // Detect reduced motion
@@ -64,101 +40,80 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreCli
     return () => motionQuery.removeEventListener("change", handler);
   }, []);
 
-  // Main 60fps lerp loop for spotlight convergence, volumetric beams, and atmospheric depth
+  // ── SIGNATURE DUAL SPOTLIGHT FAN ANIMATION ──
+  // 1. On load: lights start spread wide (~250° / 180°+ wash) and smoothly focus down to fan beam (~165°) over 2.8s.
+  // 2. The bottom baseline is locked permanently to a PERFECT straight horizontal line (from 270deg at 50% 50%).
+  // 3. Mouse hovering does NOT change, tilt, or alter the bottom line of the light in any way.
+  // 4. Color theme: Electric Cyan (#00EEFF), Vibrant Blue (#0077B6, #0096C7), Deep Navy Blue (#020817, #041028, #081E46).
   useEffect(() => {
     if (!isActive) return;
+
+    const lc = leftConicRef.current;
+    const rc = rightConicRef.current;
+    const ll = leftLinearRef.current;
+    const rl = rightLinearRef.current;
+    const cb = centerBloomRef.current;
+    const ag = atmGlowRef.current;
+
+    if (!lc || !rc || !ll || !rl) return;
+
+    const t0 = Date.now();
+    const loadDur = 2800; // 2.8s entrance spread -> focus
+    const startArc = 250; // Wide open spread (~180°+ wash across the screen)
+    const endArc = 165;   // Focused fan beam
+    const easeOut = (t: number) => 1 - Math.pow(1 - t, 2.2);
 
     let animFrame: number;
 
     const tick = () => {
-      const state = focusState.current;
-      const lerpSpeed = isReducedMotion ? 1 : 0.055;
-      const atmSpeed = isReducedMotion ? 1 : 0.035;
+      const now = Date.now();
+      const elapsed = now - t0;
+      const loadProgress = Math.min(1, elapsed / loadDur);
+      const easedProgress = easeOut(loadProgress);
 
-      // Lerp spotlight convergence focus point
-      state.currentX += (state.targetX - state.currentX) * lerpSpeed;
-      state.currentY += (state.targetY - state.currentY) * lerpSpeed;
-      state.currentIntensity += (state.targetIntensity - state.currentIntensity) * lerpSpeed;
+      // Arc narrows from wide spread (250) to focused beam (165)
+      // NOTE: Strictly driven by load progress. Mouse hover does NOT touch or distort the arc or bottom line!
+      const arc = startArc + (endArc - startArc) * easedProgress;
 
-      // Lerp atmospheric glow position
-      state.currentAtmX += (state.targetAtmX - state.currentAtmX) * atmSpeed;
-      state.currentAtmY += (state.targetAtmY - state.currentAtmY) * atmSpeed;
+      // Color stops calculation
+      const c20 = (arc * 0.22).toFixed(1);
+      const c55 = (arc * 0.55).toFixed(1);
+      const c80 = (arc * 0.82).toFixed(1);
+      const navyL = Math.round(18 + easedProgress * 6);
 
-      // Parallax offsets (max 3px for heading, disabled if reduced motion)
-      const targetParallaxX = isReducedMotion ? 0 : (mouseNorm.current.x - 0.5) * 6;
-      const targetParallaxY = isReducedMotion ? 0 : (mouseNorm.current.y - 0.5) * 4;
-      state.headingParallaxX += (targetParallaxX - state.headingParallaxX) * lerpSpeed;
-      state.headingParallaxY += (targetParallaxY - state.headingParallaxY) * lerpSpeed;
+      // from 270deg at 50% 50%:
+      // 270deg is 100% flat horizontal pointing directly along Y = 50%.
+      // Left has scaleX(-1), so both meeting rays form a SINGLE, mathematically seamless, razor-sharp horizontal line!
+      const conic = `conic-gradient(from 270deg at 50% 50%, #E0F7FF 0.2deg, #00EEFF ${c20}deg, #0077B6 ${c55}deg, hsl(218,80%,${navyL}%) ${c80}deg, #020817 ${arc.toFixed(
+        1
+      )}deg, #020817 360deg)`;
 
-      // Apply subtle heading parallax
-      if (parallaxHeadingRef.current) {
-        parallaxHeadingRef.current.style.transform = `translate3d(${state.headingParallaxX.toFixed(
-          2
-        )}px, calc(-65px + ${state.headingParallaxY.toFixed(2)}px), 0)`;
+      const linearMask = `linear-gradient(180deg, #020817 0%, rgba(2,8,23,0.12) 40%, rgba(2,8,23,0.92) 100%)`;
+
+      lc.style.background = conic;
+      rc.style.background = conic;
+      ll.style.background = linearMask;
+      rl.style.background = linearMask;
+
+      // Center Convergence Atmospheric Bloom
+      if (cb) {
+        const opacity = (0.28 * (0.7 + easedProgress * 0.3)).toFixed(3);
+        cb.style.background = `radial-gradient(ellipse 85% 55% at 50% 44%, rgba(0, 238, 255, ${opacity}) 0%, rgba(0, 119, 182, 0.16) 40%, rgba(4, 18, 48, 0.6) 70%, transparent 85%)`;
       }
 
-      // Update atmospheric background glow
-      if (atmGlowRef.current) {
-        atmGlowRef.current.style.background = `radial-gradient(circle 460px at ${state.currentAtmX.toFixed(
-          1
-        )}% ${state.currentAtmY.toFixed(1)}%, rgba(0, 217, 242, 0.08) 0%, rgba(7, 22, 36, 0.04) 50%, transparent 75%)`;
+      // Soft atmospheric background haze
+      if (ag) {
+        ag.style.background = `radial-gradient(circle 520px at 50% 45%, rgba(0, 238, 255, 0.08) 0%, rgba(0, 119, 182, 0.05) 45%, transparent 75%)`;
       }
 
-      // Update Volumetric SVG Beams
-      if (svgRef.current && leftBeamPathRef.current && rightBeamPathRef.current && centerBloomRef.current) {
-        const svgRect = svgRef.current.getBoundingClientRect();
-        const width = svgRect.width || window.innerWidth;
-        const height = svgRect.height || window.innerHeight;
-
-        // Convergence point in SVG coordinate pixels
-        const focusPixelX = (state.currentX / 100) * width;
-        const focusPixelY = (state.currentY / 100) * height;
-
-        // Left anchored light source
-        const leftOriginX = 0;
-        const leftOriginY = height * 0.38;
-
-        // Right anchored light source
-        const rightOriginX = width;
-        const rightOriginY = height * 0.38;
-
-        // Dynamic cone beam opening width at focus point
-        const beamHalfHeight = Math.max(140, height * 0.22);
-
-        // Path for Left Volumetric Light Beam
-        const leftPath = `M ${leftOriginX} ${leftOriginY - 8}
-          L ${focusPixelX} ${focusPixelY - beamHalfHeight}
-          Q ${focusPixelX + 60} ${focusPixelY} ${focusPixelX} ${focusPixelY + beamHalfHeight}
-          L ${leftOriginX} ${leftOriginY + 8}
-          Z`;
-        leftBeamPathRef.current.setAttribute("d", leftPath);
-
-        // Path for Right Volumetric Light Beam
-        const rightPath = `M ${rightOriginX} ${rightOriginY - 8}
-          L ${focusPixelX} ${focusPixelY - beamHalfHeight}
-          Q ${focusPixelX - 60} ${focusPixelY} ${focusPixelX} ${focusPixelY + beamHalfHeight}
-          L ${rightOriginX} ${rightOriginY + 8}
-          Z`;
-        rightBeamPathRef.current.setAttribute("d", rightPath);
-
-        // Center Convergence Atmospheric Bloom
-        centerBloomRef.current.setAttribute("cx", focusPixelX.toFixed(1));
-        centerBloomRef.current.setAttribute("cy", focusPixelY.toFixed(1));
-        centerBloomRef.current.setAttribute("rx", (width * 0.28).toFixed(1));
-        centerBloomRef.current.setAttribute("ry", (height * 0.24).toFixed(1));
-        centerBloomRef.current.setAttribute(
-          "fill-opacity",
-          (0.22 * state.currentIntensity).toFixed(3)
-        );
+      if (loadProgress < 1) {
+        animFrame = requestAnimationFrame(tick);
       }
-
-      animFrame = requestAnimationFrame(tick);
     };
 
     animFrame = requestAnimationFrame(tick);
-
     return () => cancelAnimationFrame(animFrame);
-  }, [isActive, isReducedMotion]);
+  }, [isActive]);
 
   // Handle mouse move across Hero section
   const handleHeroMouseMove = (e: React.MouseEvent<HTMLDivElement>) => {
@@ -170,82 +125,12 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreCli
     const normY = Math.max(0, Math.min(1, (e.clientY - rect.top) / rect.height));
 
     mouseNorm.current = { x: normX, y: normY };
-    mouseScreen.current = { x: e.clientX, y: e.clientY };
     isHoveringHero.current = true;
-
-    // Shift beam focus gently (max +/- 8% from center horizontally, +/- 6% vertically)
-    focusState.current.targetX = 50 + (normX - 0.5) * 16;
-    focusState.current.targetY = 44 + (normY - 0.5) * 12;
-
-    // Shift atmospheric haze
-    focusState.current.targetAtmX = 50 + (normX - 0.5) * 22;
-    focusState.current.targetAtmY = 45 + (normY - 0.5) * 16;
-
-    // Center intensity boost: moving toward center increases overlapping light naturally
-    const distCenter = Math.hypot(normX - 0.5, normY - 0.45);
-    const centerBoost = Math.max(0, 1 - distCenter * 2.2) * 0.28;
-    const headingBoost = isHoveringHeading.current ? 0.18 : 0;
-    focusState.current.targetIntensity = 1.0 + centerBoost + headingBoost;
   };
 
-  // Reset lighting smoothly when cursor leaves Hero
   const handleHeroMouseLeave = () => {
     isHoveringHero.current = false;
-    isHoveringHeading.current = false;
     mouseNorm.current = { x: 0.5, y: 0.45 };
-    focusState.current.targetX = 50;
-    focusState.current.targetY = 44;
-    focusState.current.targetAtmX = 50;
-    focusState.current.targetAtmY = 45;
-    focusState.current.targetIntensity = 1.0;
-  };
-
-  // ── Interactive Main Heading: Metallic Light Reflection & Character Lift ──
-  const handleHeadingMouseMove = (e: React.MouseEvent<HTMLHeadingElement>) => {
-    isHoveringHeading.current = true;
-    focusState.current.targetIntensity = 1.25;
-
-    const heading = headingRef.current;
-    if (!heading) return;
-
-    const rect = heading.getBoundingClientRect();
-    const relX = e.clientX - rect.left;
-    const relY = e.clientY - rect.top;
-
-    // Update metallic specular reflection overlay position
-    if (headingReflectionRef.current) {
-      headingReflectionRef.current.style.opacity = "1";
-      headingReflectionRef.current.style.background = `radial-gradient(circle 220px at ${relX}px ${relY}px, rgba(255, 255, 255, 0.95) 0%, rgba(115, 233, 245, 0.8) 35%, transparent 70%)`;
-    }
-
-    // Compute proximity lift for each character (1-2.5px lift for letters near cursor)
-    const newLifts: { [key: string]: number } = {};
-    const charElements = heading.querySelectorAll<HTMLElement>("[data-char-key]");
-
-    charElements.forEach((el) => {
-      const charRect = el.getBoundingClientRect();
-      const charCenterX = charRect.left + charRect.width / 2;
-      const dist = Math.abs(e.clientX - charCenterX);
-      const key = el.getAttribute("data-char-key") || "";
-
-      if (dist < 85) {
-        // Cosine falloff for silky smooth letter lift
-        const lift = Math.cos((dist / 85) * (Math.PI / 2)) * 2.5;
-        newLifts[key] = Math.max(0, lift);
-      } else {
-        newLifts[key] = 0;
-      }
-    });
-
-    setCharLifts(newLifts);
-  };
-
-  const handleHeadingMouseLeave = () => {
-    isHoveringHeading.current = false;
-    if (headingReflectionRef.current) {
-      headingReflectionRef.current.style.opacity = "0";
-    }
-    setCharLifts({});
   };
 
   // ── Interactive Subtitle: Proximity Cyan Illumination ──
@@ -283,202 +168,129 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreCli
       onMouseMove={handleHeroMouseMove}
       onMouseLeave={handleHeroMouseLeave}
       className="relative w-full h-full flex items-center justify-center overflow-hidden select-none"
-      style={{ background: "#02050D" }}
+      style={{
+        background:
+          "radial-gradient(ellipse 100% 85% at 50% 45%, #081E46 0%, #041028 50%, #020817 100%)",
+      }}
     >
-      {/* ── Volumetric Dual Spotlights (SVG Layer with Soft Layered Gradients) ── */}
-      <svg
-        ref={svgRef}
-        className="absolute inset-0 w-full h-full pointer-events-none z-[1]"
-        style={{ mixBlendMode: "screen" }}
-        aria-hidden="true"
-      >
-        <defs>
-          {/* Left Volumetric Light Gradient */}
-          <linearGradient id="leftBeamGrad" x1="0%" y1="38%" x2="50%" y2="44%">
-            <stop offset="0%" stopColor="#EAFBFF" stopOpacity="0.85" />
-            <stop offset="14%" stopColor="#73E9F5" stopOpacity="0.45" />
-            <stop offset="48%" stopColor="#00D9F2" stopOpacity="0.22" />
-            <stop offset="78%" stopColor="#071624" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="#02050D" stopOpacity="0" />
-          </linearGradient>
-
-          {/* Right Volumetric Light Gradient */}
-          <linearGradient id="rightBeamGrad" x1="100%" y1="38%" x2="50%" y2="44%">
-            <stop offset="0%" stopColor="#EAFBFF" stopOpacity="0.85" />
-            <stop offset="14%" stopColor="#73E9F5" stopOpacity="0.45" />
-            <stop offset="48%" stopColor="#00D9F2" stopOpacity="0.22" />
-            <stop offset="78%" stopColor="#071624" stopOpacity="0.08" />
-            <stop offset="100%" stopColor="#02050D" stopOpacity="0" />
-          </linearGradient>
-
-          {/* Central Atmospheric Convergence Bloom */}
-          <radialGradient id="centerBloomGrad" cx="50%" cy="50%" r="50%">
-            <stop offset="0%" stopColor="#73E9F5" stopOpacity="0.75" />
-            <stop offset="35%" stopColor="#00D9F2" stopOpacity="0.35" />
-            <stop offset="65%" stopColor="#071624" stopOpacity="0.12" />
-            <stop offset="100%" stopColor="#02050D" stopOpacity="0" />
-          </radialGradient>
-
-          {/* Soft Blur Filter for Atmospheric Light Diffusion */}
-          <filter id="softDiffusion" x="-20%" y="-20%" width="140%" height="140%">
-            <feGaussianBlur in="SourceGraphic" stdDeviation="16" />
-          </filter>
-        </defs>
-
-        {/* Central Atmospheric Convergence Bloom Behind Typography */}
-        <ellipse
-          ref={centerBloomRef}
-          cx="50%"
-          cy="44%"
-          rx="380"
-          ry="240"
-          fill="url(#centerBloomGrad)"
-          filter="url(#softDiffusion)"
-          fillOpacity="0.22"
-        />
-
-        {/* Left Volumetric Light Beam */}
-        <path
-          ref={leftBeamPathRef}
-          fill="url(#leftBeamGrad)"
-          filter="url(#softDiffusion)"
-        />
-
-        {/* Right Volumetric Light Beam */}
-        <path
-          ref={rightBeamPathRef}
-          fill="url(#rightBeamGrad)"
-          filter="url(#softDiffusion)"
-        />
-      </svg>
-
-      {/* ── Anchored Light Origin Projectors (Left & Right Edges) ── */}
+      {/* ── Wide Symmetrical Dual Conic Fan Spotlights ── */}
+      {/* Center 50% 50% with height 100% ensures the 270deg ray is strictly at Y = 50% */}
       <div
-        className="absolute left-0 top-[38%] -translate-y-1/2 w-2 h-16 pointer-events-none z-[2]"
+        ref={leftConicRef}
+        className="absolute inset-y-0 left-0 w-1/2 pointer-events-none z-[1]"
         style={{
-          background:
-            "radial-gradient(ellipse at left, rgba(234, 251, 255, 0.9) 0%, rgba(0, 217, 242, 0.4) 40%, transparent 80%)",
-          filter: "drop-shadow(0 0 16px #00D9F2)",
+          transform: "scaleX(-1)",
+          willChange: "background",
         }}
         aria-hidden="true"
       />
       <div
-        className="absolute right-0 top-[38%] -translate-y-1/2 w-2 h-16 pointer-events-none z-[2]"
+        ref={rightConicRef}
+        className="absolute inset-y-0 right-0 w-1/2 pointer-events-none z-[1]"
         style={{
-          background:
-            "radial-gradient(ellipse at right, rgba(234, 251, 255, 0.9) 0%, rgba(0, 217, 242, 0.4) 40%, transparent 80%)",
-          filter: "drop-shadow(0 0 16px #00D9F2)",
+          willChange: "background",
         }}
         aria-hidden="true"
       />
 
-      {/* ── Soft Mouse-Following Atmospheric Glow Behind Content ── */}
+      {/* Layered Vertical Linear Darkening Masks */}
+      <div
+        ref={leftLinearRef}
+        className="absolute inset-y-0 left-0 w-1/2 pointer-events-none z-[2]"
+        aria-hidden="true"
+      />
+      <div
+        ref={rightLinearRef}
+        className="absolute inset-y-0 right-0 w-1/2 pointer-events-none z-[2]"
+        aria-hidden="true"
+      />
+
+      {/* ── Central Atmospheric Convergence Bloom Behind Heading ── */}
+      <div
+        ref={centerBloomRef}
+        className="absolute top-[44%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen max-w-[1400px] h-[340px] pointer-events-none z-[2] blur-[55px] will-change-transform"
+        style={{
+          background:
+            "radial-gradient(ellipse 85% 55% at 50% 44%, rgba(0, 238, 255, 0.25) 0%, rgba(0, 119, 182, 0.16) 40%, rgba(4, 18, 48, 0.6) 70%, transparent 85%)",
+          mixBlendMode: "screen",
+        }}
+        aria-hidden="true"
+      />
+
+      {/* ── Soft Atmospheric Ambient Glow ── */}
       <div
         ref={atmGlowRef}
         className="absolute inset-0 pointer-events-none z-[2] transition-opacity duration-700"
         style={{
           background:
-            "radial-gradient(circle 460px at 50% 45%, rgba(0, 217, 242, 0.08) 0%, rgba(7, 22, 36, 0.04) 50%, transparent 75%)",
+            "radial-gradient(circle 520px at 50% 45%, rgba(0, 238, 255, 0.08) 0%, rgba(0, 119, 182, 0.05) 45%, transparent 75%)",
         }}
         aria-hidden="true"
       />
 
-      {/* ── Subtle Stationary 1px Horizon Separator (Replaces moving laser line) ── */}
+      {/* ── PERFECT RAZOR-SHARP HORIZONTAL HORIZON LINE ── */}
+      {/* Placed at top-1/2 -translate-y-1/2 (50% Y), precisely matching the 270deg spotlight baseline */}
       <div
-        className="absolute top-[52%] inset-x-0 h-[1px] pointer-events-none z-[3]"
+        className="absolute top-1/2 -translate-y-1/2 inset-x-0 h-[1.5px] pointer-events-none z-[3]"
         style={{
           background:
-            "linear-gradient(90deg, transparent 0%, rgba(0, 217, 242, 0.04) 20%, rgba(0, 217, 242, 0.16) 50%, rgba(0, 217, 242, 0.04) 80%, transparent 100%)",
+            "linear-gradient(90deg, transparent 0%, rgba(0, 238, 255, 0.3) 15%, #00EEFF 50%, rgba(0, 238, 255, 0.3) 85%, transparent 100%)",
+          boxShadow: "0 0 10px rgba(0, 238, 255, 0.5)",
         }}
         aria-hidden="true"
       />
 
-      {/* ── Soft Atmospheric Ambient Floor Reflection (Replaces bottom wave) ── */}
+      {/* ── Soft Atmospheric Ambient Floor Reflection (Blends into dark navy) ── */}
       <div
-        className="absolute inset-x-0 bottom-0 h-40 pointer-events-none z-[2]"
+        className="absolute inset-x-0 bottom-0 h-44 pointer-events-none z-[2]"
         style={{
           background:
-            "radial-gradient(ellipse 70% 30% at 50% 100%, rgba(0, 217, 242, 0.045) 0%, rgba(7, 22, 36, 0.02) 50%, transparent 80%)",
+            "radial-gradient(ellipse 70% 30% at 50% 100%, rgba(0, 238, 255, 0.07) 0%, rgba(0, 119, 182, 0.04) 45%, transparent 80%)",
         }}
         aria-hidden="true"
       />
 
-      {/* ── Main Hero Content with Parallax & Proximity Interactions ── */}
+      {/* ── Main Hero Content ── */}
       <div
-        ref={parallaxHeadingRef}
-        className="relative flex flex-col items-center text-center px-4 w-full z-10 will-change-transform"
+        className="relative flex flex-col items-center text-center px-4 w-full z-10"
         style={{
           transform: "translateY(-65px)",
           animation: "heroZoomIn 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both",
         }}
       >
-        {/* ── Interactive Main Heading ("WE BUILD DIGITAL EXPERIENCES") ── */}
-        <div className="relative group/heading">
-          <h1
-            ref={headingRef}
-            onMouseMove={handleHeadingMouseMove}
-            onMouseLeave={handleHeadingMouseLeave}
-            data-cursor="heading"
-            aria-label="WE BUILD DIGITAL EXPERIENCES"
-            className="leading-tight select-none cursor-default"
-            style={{
-              fontFamily: "'Italiana', serif",
-              fontSize: "clamp(2.5rem, 8.5vw, 5.8rem)",
-              maxWidth: "1200px",
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              gap: "0.28em",
-            }}
-          >
-            {HEADING_WORDS.map((word, wordIdx) => (
-              <span
-                key={word}
-                className="inline-flex"
-                style={{
-                  background:
-                    "linear-gradient(180deg, #FFFFFF 15%, #E2F5FF 55%, #88E2FF 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  filter:
-                    "drop-shadow(0 0 20px rgba(0, 200, 225, 0.35)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.95))",
-                  WebkitTextStrokeWidth: "1px",
-                  WebkitTextStrokeColor: "rgba(255, 255, 255, 0.4)",
-                  letterSpacing: "0.03em",
-                }}
-              >
-                {word.split("").map((char, charIdx) => {
-                  const key = `${wordIdx}-${charIdx}`;
-                  const lift = charLifts[key] || 0;
-                  return (
-                    <span
-                      key={key}
-                      data-char-key={key}
-                      className="inline-block transition-transform duration-200 ease-out"
-                      style={{
-                        transform: lift > 0 ? `translate3d(0, -${lift.toFixed(2)}px, 0)` : "none",
-                      }}
-                      aria-hidden="true"
-                    >
-                      {char}
-                    </span>
-                  );
-                })}
-              </span>
-            ))}
-          </h1>
-
-          {/* Polished Metallic Specular Light Reflection Overlay */}
-          <div
-            ref={headingReflectionRef}
-            className="absolute inset-0 pointer-events-none transition-opacity duration-300 opacity-0 mix-blend-color-dodge select-none"
-            style={{
-              filter: "blur(2px)",
-            }}
-            aria-hidden="true"
-          />
-        </div>
+        {/* ── Main Heading: Clean, Reliable Plain Text ── */}
+        <h1
+          className="leading-tight select-none cursor-default"
+          style={{
+            fontFamily: "'Italiana', serif",
+            fontSize: "clamp(2.5rem, 8.5vw, 5.8rem)",
+            maxWidth: "1200px",
+            display: "flex",
+            flexWrap: "wrap",
+            justifyContent: "center",
+            gap: "0.28em",
+          }}
+        >
+          {HEADING_WORDS.map((word) => (
+            <span
+              key={word}
+              style={{
+                background: "linear-gradient(180deg, #FFFFFF 15%, #E2F5FF 55%, #88E2FF 100%)",
+                WebkitBackgroundClip: "text",
+                WebkitTextFillColor: "transparent",
+                backgroundClip: "text",
+                display: "inline-block",
+                filter:
+                  "drop-shadow(0 0 20px rgba(0, 200, 225, 0.35)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.95))",
+                WebkitTextStrokeWidth: "1px",
+                WebkitTextStrokeColor: "rgba(255, 255, 255, 0.4)",
+                letterSpacing: "0.03em",
+              }}
+            >
+              {word}
+            </span>
+          ))}
+        </h1>
 
         {/* ── Interactive Subtitle: Proximity Cyan Illumination ── */}
         <div
@@ -501,7 +313,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreCli
               return <span key={idx}>&nbsp;</span>;
             }
 
-            // Interpolate color from muted ice-blue to cyan highlight
+            // Interpolate color from muted ice-blue to vibrant cyan highlight
             const color =
               proximity > 0
                 ? `rgba(${Math.round(213 - proximity * 98)}, ${Math.round(
@@ -511,8 +323,8 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreCli
 
             const glow =
               proximity > 0
-                ? `0 0 ${Math.round(14 + proximity * 12)}px rgba(0, 217, 242, ${
-                    0.35 + proximity * 0.45
+                ? `0 0 ${Math.round(14 + proximity * 12)}px rgba(0, 238, 255, ${
+                    0.4 + proximity * 0.5
                   }), 0 2px 8px rgba(0,0,0,0.9)`
                 : "0 0 14px rgba(0, 200, 225, 0.35), 0 2px 8px rgba(0,0,0,0.9)";
 
@@ -534,9 +346,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreCli
       </div>
 
       {/* ── Small Description with Minimal Hover Treatment ── */}
-      <p
-        className="absolute z-10 bottom-14 text-center px-4 text-slate-400 hover:text-slate-200 hover:drop-shadow-[0_0_12px_rgba(115,233,245,0.25)] font-sans tracking-wide text-xs sm:text-sm md:text-base select-none transition-colors duration-400 ease-out cursor-default"
-      >
+      <p className="absolute z-10 bottom-14 text-center px-4 text-slate-400 hover:text-cyan-200 hover:drop-shadow-[0_0_12px_rgba(0,238,255,0.3)] font-sans tracking-wide text-xs sm:text-sm md:text-base select-none transition-colors duration-400 ease-out cursor-default">
         Mobile Applications &amp; Web Systems Built for Modern Businesses.
       </p>
 
@@ -551,7 +361,7 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreCli
           animation: "bounce 1.6s ease-in-out infinite",
         }}
       >
-        <span className="text-[10px] font-mono tracking-[0.2em] text-cyan-400/70 uppercase group-hover:text-cyan-300 transition-colors">
+        <span className="text-[10px] font-mono tracking-[0.2em] text-cyan-400/80 uppercase group-hover:text-cyan-300 transition-colors">
           EXPLORE
         </span>
         <div
@@ -561,17 +371,16 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreCli
             borderRight: "1.5px solid #00EEFF",
             borderBottom: "1.5px solid #00EEFF",
             transform: "rotate(45deg)",
-            opacity: 0.7,
+            opacity: 0.75,
           }}
         />
       </div>
 
-      {/* ── Minimal Laser Sensor Corner Reticles (Atmospheric Framing) ── */}
-      <div className="absolute top-6 left-6 w-3 h-3 border-t border-l border-cyan-400/30 pointer-events-none" />
-      <div className="absolute top-6 right-6 w-3 h-3 border-t border-r border-cyan-400/30 pointer-events-none" />
-      <div className="absolute bottom-6 left-6 w-3 h-3 border-b border-l border-cyan-400/30 pointer-events-none" />
-      <div className="absolute bottom-6 right-6 w-3 h-3 border-b border-r border-cyan-400/30 pointer-events-none" />
+      {/* ── Minimal Laser Sensor Corner Reticles (Cyan/Navy Framing) ── */}
+      <div className="absolute top-6 left-6 w-3 h-3 border-t border-l border-cyan-400/40 pointer-events-none" />
+      <div className="absolute top-6 right-6 w-3 h-3 border-t border-r border-cyan-400/40 pointer-events-none" />
+      <div className="absolute bottom-6 left-6 w-3 h-3 border-b border-l border-cyan-400/40 pointer-events-none" />
+      <div className="absolute bottom-6 right-6 w-3 h-3 border-b border-r border-cyan-400/40 pointer-events-none" />
     </div>
   );
 };
-

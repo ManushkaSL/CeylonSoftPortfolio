@@ -133,10 +133,10 @@ export default function Index() {
     function tick() {
       const t = (Date.now() - t0) / 1000;
       const p = (Math.sin(t * (Math.PI / 6)) + 1) / 2;
-      const r = Math.round(2 + p * 1.5);
-      const g = Math.round(5 + p * 2.5);
-      const b = Math.round(14 + p * 4);
-      bg.style.background = `rgb(${r},${g},${b})`;
+      const r = Math.round(2 + p * 2.5);
+      const g = Math.round(8 + p * 4.5);
+      const b = Math.round(24 + p * 8);
+      bg.style.background = `radial-gradient(ellipse 100% 85% at 50% 45%, rgb(${r + 4},${g + 12},${b + 28}) 0%, rgb(${r},${g},${b}) 55%, #020817 100%)`;
       raf = requestAnimationFrame(tick);
     }
     tick();
@@ -286,7 +286,7 @@ export default function Index() {
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden font-sans">
       <CustomCursor />
-      <div ref={bgRef} className="absolute inset-0" style={{ background: "#020612", zIndex: 0 }} />
+      <div ref={bgRef} className="absolute inset-0" style={{ background: "#020817", zIndex: 0 }} />
 
       {/* ── SECTION 1: HERO (PREMIUM CINEMATIC DUAL SPOTLIGHT HERO) ── */}
       <div style={sectionStyle(0)}>
@@ -436,18 +436,6 @@ export default function Index() {
           </div>
         </div>
       </div>
-
-      {/* ── LEFT-EDGE VERTICAL DYNAMIC ISLAND ── */}
-      <VerticalDynamicIsland
-        currentSection={currentSection}
-        onNavigate={(idx) => {
-          if (!isAnimating && idx !== currentSection) {
-            setIsAnimating(true);
-            setCurrentSection(idx);
-            setTimeout(() => setIsAnimating(false), 900);
-          }
-        }}
-      />
 
       {/* ── DOT NAVIGATION (4 SECTIONS) ── */}
       <div
@@ -627,6 +615,22 @@ export default function Index() {
           </div>
         </div>
       )}
+
+      {/* ── LEFT-EDGE VERTICAL DYNAMIC ISLAND (Always on top across all sections & project deck) ── */}
+      <VerticalDynamicIsland
+        currentSection={currentSection}
+        projectsType={projectsType}
+        onNavigate={(idx) => {
+          if (projectsType) {
+            closeProjectsModal();
+          }
+          if (!isAnimating && idx !== currentSection) {
+            setIsAnimating(true);
+            setCurrentSection(idx);
+            setTimeout(() => setIsAnimating(false), 900);
+          }
+        }}
+      />
 
       <style>{`
         @keyframes bounce {
