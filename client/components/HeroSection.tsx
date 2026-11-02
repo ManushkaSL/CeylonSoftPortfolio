@@ -574,3 +574,4 @@ export const HeroSection: React.FC<HeroSectionProps> = ({ isActive, onExploreCli
     </div>
   );
 };
+

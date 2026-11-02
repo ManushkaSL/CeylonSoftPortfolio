@@ -2,6 +2,8 @@ import React, { useEffect, useRef, useState } from "react";
 import { ProjectCard3D, ProjectData } from "@/components/ProjectCard3D";
 import { AboutSection } from "@/components/AboutSection";
 import { VerticalDynamicIsland } from "@/components/VerticalDynamicIsland";
+import { HeroSection } from "@/components/HeroSection";
+import { CustomCursor } from "@/components/CustomCursor";
 import { X, ArrowRight, Layers } from "lucide-react";
 import { motion } from "framer-motion";
 
@@ -75,10 +77,6 @@ const MOBILE_PROJECTS: ProjectData[] = [
 ];
 
 export default function Index() {
-  const leftConicRef  = useRef<HTMLDivElement>(null);
-  const rightConicRef = useRef<HTMLDivElement>(null);
-  const leftLinearRef  = useRef<HTMLDivElement>(null);
-  const rightLinearRef = useRef<HTMLDivElement>(null);
   const bgRef = useRef<HTMLDivElement>(null);
   const section2Ref = useRef<HTMLDivElement>(null);
   const leftImgRef = useRef<HTMLImageElement>(null);
@@ -126,29 +124,6 @@ export default function Index() {
       window.removeEventListener("touchend",   onTouchEnd);
     };
   }, [currentSection, isAnimating]);
-
-  // Wide light sweep: Starts wide at outer left/right and sweeps INWARD to center!
-  useEffect(() => {
-    const lc = leftConicRef.current, rc = rightConicRef.current;
-    const ll = leftLinearRef.current, rl = rightLinearRef.current;
-    if (!lc || !rc || !ll || !rl) return;
-
-    const startArc = 260, endArc = 165, dur = 2800, t0 = Date.now();
-    const ease = (t: number) => 1 - Math.pow(1 - t, 2.2);
-
-    function tick() {
-      const p = ease(Math.min(1, (Date.now() - t0) / dur));
-      const arc = startArc + (endArc - startArc) * p;
-      const c20 = (arc * 0.22).toFixed(1), c55 = (arc * 0.58).toFixed(1);
-      const midL = (18 + p * 6).toFixed(0);
-      const conic = `conic-gradient(from 270deg at 50% 50%, #C4F1FF 0.2deg, #00D5E8 ${c20}deg, hsl(218,80%,${midL}%) ${c55}deg, #020612 ${arc.toFixed(1)}deg, #020612 360deg)`;
-      const linear = `linear-gradient(180deg, #020612 0%, rgba(2,6,18,0.15) 40%, rgba(2,6,18,0.92) 100%)`;
-      lc.style.background = rc.style.background = conic;
-      ll.style.background = rl.style.background = linear;
-      if (p < 1) requestAnimationFrame(tick);
-    }
-    tick();
-  }, []);
 
   useEffect(() => {
     const bg = bgRef.current;
@@ -310,206 +285,21 @@ export default function Index() {
 
   return (
     <div className="fixed inset-0 w-screen h-screen overflow-hidden font-sans">
+      <CustomCursor />
       <div ref={bgRef} className="absolute inset-0" style={{ background: "#020612", zIndex: 0 }} />
 
-      {/* ── SECTION 1: HERO (SUPER LASER THEME) ── */}
+      {/* ── SECTION 1: HERO (PREMIUM CINEMATIC DUAL SPOTLIGHT HERO) ── */}
       <div style={sectionStyle(0)}>
-        {/* Wide Dual Symmetrical Conic Lights */}
-        <div
-          ref={leftConicRef}
-          className="absolute inset-y-0 left-0 w-1/2 pointer-events-none"
-          style={{
-            background:
-              "conic-gradient(from 270deg at 50% 50%, #C4F1FF 0.2deg, #00D5E8 35deg, hsl(218,80%,22%) 95deg, #020612 165deg, #020612 360deg)",
-            height: "130%",
-            top: "-15%",
-            transform: "scaleX(-1)",
-          }}
-        />
-        <div
-          ref={rightConicRef}
-          className="absolute inset-y-0 right-0 w-1/2 pointer-events-none"
-          style={{
-            background:
-              "conic-gradient(from 270deg at 50% 50%, #C4F1FF 0.2deg, #00D5E8 35deg, hsl(218,80%,22%) 95deg, #020612 165deg, #020612 360deg)",
-            height: "130%",
-            top: "-15%",
-          }}
-        />
-        <div
-          ref={leftLinearRef}
-          className="absolute inset-y-0 left-0 w-1/2 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(180deg, #020612 0%, rgba(2,6,18,0.15) 40%, rgba(2,6,18,0.92) 100%)",
-          }}
-        />
-        <div
-          ref={rightLinearRef}
-          className="absolute inset-y-0 right-0 w-1/2 pointer-events-none"
-          style={{
-            background:
-              "linear-gradient(180deg, #020612 0%, rgba(2,6,18,0.15) 40%, rgba(2,6,18,0.92) 100%)",
-          }}
-        />
-
-        {/* ── LASER SUPER ANIMATION 1: RADIANT HORIZONTAL LASER BEAM ── */}
-        <div className="absolute top-[52%] inset-x-0 h-px pointer-events-none z-10 overflow-hidden">
-          {/* Main Electric Cyan Core Laser */}
-          <div
-            className="w-full h-[1.5px] bg-gradient-to-r from-transparent via-[#00EEFF] to-transparent shadow-[0_0_20px_#00EEFF,0_0_6px_#FFFFFF]"
-            style={{ animation: "laserPulse 3.5s ease-in-out infinite" }}
-          />
-          {/* Traveling Laser Pulse Tracer */}
-          <div
-            className="absolute top-0 h-full w-40 bg-gradient-to-r from-transparent via-white to-transparent"
-            style={{
-              animation: "laserTravel 4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
-              filter: "drop-shadow(0 0 12px #00EEFF)",
-            }}
-          />
-        </div>
-
-        {/* ── LASER SUPER ANIMATION 2: DUAL ANGLED PROJECTOR LASER RAYS ── */}
-        <div
-          className="absolute bottom-0 left-0 w-[45vw] h-px origin-left pointer-events-none opacity-40"
-          style={{
-            transform: "rotate(-25deg)",
-            background: "linear-gradient(90deg, #00EEFF 0%, rgba(0,238,255,0.4) 60%, transparent 100%)",
-            boxShadow: "0 0 16px rgba(0,238,255,0.6)",
-          }}
-        />
-        <div
-          className="absolute bottom-0 right-0 w-[45vw] h-px origin-right pointer-events-none opacity-40"
-          style={{
-            transform: "rotate(25deg)",
-            background: "linear-gradient(-90deg, #00EEFF 0%, rgba(0,238,255,0.4) 60%, transparent 100%)",
-            boxShadow: "0 0 16px rgba(0,238,255,0.6)",
-          }}
-        />
-
-        {/* ── LASER SUPER ANIMATION 3: VERTICAL SCANNER BEAM ── */}
-        <div
-          className="absolute inset-x-0 h-24 pointer-events-none z-10 opacity-30"
-          style={{
-            background: "linear-gradient(180deg, transparent 0%, rgba(0,238,255,0.12) 50%, #00EEFF 98%, transparent 100%)",
-            animation: "verticalLaserScan 6s ease-in-out infinite",
-          }}
-        />
-
-        {/* Wide Horizon Ambient Glow */}
-        <div
-          className="absolute top-[44%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen max-w-[1400px] h-[320px] pointer-events-none opacity-20 blur-[100px]"
-          style={{
-            background:
-              "radial-gradient(ellipse 85% 45% at 50% 50%, #00EEFF 0%, #052255 50%, transparent 75%)",
-          }}
-        />
-
-        {/* Soft bottom dark feathering */}
-        <div
-          className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
-          style={{ background: "linear-gradient(0deg, #020612 20%, rgba(2,6,18,0.85) 55%, transparent 100%)" }}
-        />
-
-        {/* Main Hero Content */}
-        <div
-          className="relative flex flex-col items-center text-center px-4 w-full"
-          style={{
-            transform: "translateY(-65px)",
-            zIndex: 10,
-            animation: "heroZoomIn 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both",
-          }}
-        >
-          {/* Luminous Chrome Heading */}
-          <h1
-            className="leading-tight select-none"
-            style={{
-              fontFamily: "'Italiana', serif",
-              fontSize: "clamp(2.5rem, 8.5vw, 5.8rem)",
-              maxWidth: "1200px",
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              gap: "0.28em",
-            }}
-          >
-            {["WE", "BUILD", "DIGITAL", "EXPERIENCES"].map((word) => (
-              <span
-                key={word}
-                style={{
-                  background: "linear-gradient(180deg, #FFFFFF 15%, #E2F5FF 55%, #88E2FF 100%)",
-                  WebkitBackgroundClip: "text",
-                  WebkitTextFillColor: "transparent",
-                  backgroundClip: "text",
-                  display: "inline-block",
-                  filter:
-                    "drop-shadow(0 0 20px rgba(0, 200, 225, 0.35)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.95))",
-                  WebkitTextStrokeWidth: "1px",
-                  WebkitTextStrokeColor: "rgba(255, 255, 255, 0.4)",
-                  letterSpacing: "0.03em",
-                }}
-              >
-                {word}
-              </span>
-            ))}
-          </h1>
-
-          {/* Subtitle in Glowing Ice Silver */}
-          <p
-            className="mt-6 text-[#D5EBF8]"
-            style={{
-              fontFamily: "'Jersey 10', sans-serif",
-              fontSize: "clamp(1.15rem, 2.5vw, 2.3rem)",
-              letterSpacing: "0.18em",
-              textShadow: "0 0 14px rgba(0, 200, 225, 0.35), 0 2px 8px rgba(0,0,0,0.9)",
-            }}
-          >
-            W h e r e &nbsp; P e r f o r m a n c e &nbsp; M e e t s &nbsp; D e s i g n .
-          </p>
-        </div>
-
-        {/* Bottom Tagline (Clean Text - No Capsule) */}
-        <p className="absolute z-10 bottom-14 text-center px-4 text-slate-400 font-sans tracking-wide text-xs sm:text-sm md:text-base select-none">
-          Mobile Applications &amp; Web Systems Built for Modern Businesses.
-        </p>
-
-        {/* Scroll Indicator Prompt */}
-        <div
-          className="absolute left-1/2 z-20 flex flex-col items-center gap-1 cursor-pointer group"
-          onClick={() => {
+        <HeroSection
+          isActive={currentSection === 0}
+          onExploreClick={() => {
             if (!isAnimating) {
               setIsAnimating(true);
               setCurrentSection(1);
               setTimeout(() => setIsAnimating(false), 900);
             }
           }}
-          style={{
-            bottom: "0.9rem",
-            transform: "translateX(-50%)",
-            animation: "bounce 1.6s ease-in-out infinite",
-          }}
-        >
-          <span className="text-[10px] font-mono tracking-[0.2em] text-cyan-400/70 uppercase group-hover:text-cyan-300 transition-colors">
-            EXPLORE
-          </span>
-          <div
-            style={{
-              width: 14,
-              height: 14,
-              borderRight: "1.5px solid #00EEFF",
-              borderBottom: "1.5px solid #00EEFF",
-              transform: "rotate(45deg)",
-              opacity: 0.7,
-            }}
-          />
-        </div>
-
-        {/* ── LASER SENSOR CORNER RETICLES ── */}
-        <div className="absolute top-6 left-6 w-3 h-3 border-t border-l border-cyan-400/40 pointer-events-none" />
-        <div className="absolute top-6 right-6 w-3 h-3 border-t border-r border-cyan-400/40 pointer-events-none" />
-        <div className="absolute bottom-6 left-6 w-3 h-3 border-b border-l border-cyan-400/40 pointer-events-none" />
-        <div className="absolute bottom-6 right-6 w-3 h-3 border-b border-r border-cyan-400/40 pointer-events-none" />
+        />
       </div>
 
       {/* ── SECTION 2: WEB VS MOBILE SPLIT SHOWCASE ── */}
@@ -846,22 +636,6 @@ export default function Index() {
         @keyframes heroZoomIn {
           0%   { opacity: 0; transform: scale(0.97) translateY(-75px); }
           100% { opacity: 1; transform: scale(1) translateY(-65px); }
-        }
-        @keyframes laserPulse {
-          0%, 100% { opacity: 0.6; filter: drop-shadow(0 0 14px #00EEFF); }
-          50%      { opacity: 1;   filter: drop-shadow(0 0 26px #00EEFF); }
-        }
-        @keyframes laserTravel {
-          0%   { left: -20%; opacity: 0; }
-          20%  { opacity: 1; }
-          80%  { opacity: 1; }
-          100% { left: 120%; opacity: 0; }
-        }
-        @keyframes verticalLaserScan {
-          0%   { top: 10%; opacity: 0; }
-          25%  { opacity: 0.35; }
-          75%  { opacity: 0.35; }
-          100% { top: 85%; opacity: 0; }
         }
         @keyframes slideFromBottom {
           0%   { opacity: 0; transform: translateY(80px); }
