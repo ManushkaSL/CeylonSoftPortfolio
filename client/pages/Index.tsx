@@ -1,4 +1,94 @@
 import React, { useEffect, useRef, useState } from "react";
+import { ProjectCard3D, ProjectData } from "@/components/ProjectCard3D";
+import { AboutSection } from "@/components/AboutSection";
+import { X, ArrowRight, Layers } from "lucide-react";
+import { motion } from "framer-motion";
+
+const WEB_PROJECTS: ProjectData[] = [
+  {
+    id: "web-1",
+    title: "E-Commerce Architecture",
+    desc: "High-throughput headless marketplace with Stripe integration, instant search, and real-time inventory telemetry.",
+    category: "web",
+    tags: ["Next.js", "TypeScript", "Stripe", "PostgreSQL"],
+    mockup: "/images/laptop.png",
+  },
+  {
+    id: "web-2",
+    title: "Real-Time Analytics Core",
+    desc: "Financial intelligence dashboard featuring live telemetry feeds, websocket streaming, and interactive charting.",
+    category: "web",
+    tags: ["React", "Recharts", "Node.js", "WebSockets"],
+    mockup: "/images/laptop.png",
+  },
+  {
+    id: "web-3",
+    title: "Headless CMS Engine",
+    desc: "Enterprise content delivery platform with multi-tenant architecture and dynamic schema modeling.",
+    category: "web",
+    tags: ["TailwindCSS", "GraphQL", "Express", "Redis"],
+    mockup: "/images/laptop.png",
+  },
+  {
+    id: "web-4",
+    title: "Operations Command Hub",
+    desc: "Mission-critical administrative management portal with RBAC access control and security audit logs.",
+    category: "web",
+    tags: ["React", "Radix UI", "Zod", "Serverless"],
+    mockup: "/images/laptop.png",
+  },
+  {
+    id: "web-5",
+    title: "AI Knowledge Workspace",
+    desc: "High-performance AI search & documentation platform optimized for ultra-low latency semantic indexing.",
+    category: "web",
+    tags: ["Next.js", "OpenAI API", "Vector DB", "Tailwind"],
+    mockup: "/images/laptop.png",
+  },
+];
+
+const MOBILE_PROJECTS: ProjectData[] = [
+  {
+    id: "mob-1",
+    title: "Biometric Fitness Tracker",
+    desc: "Health telemetry & workout suite with continuous Apple HealthKit sync, GPS routing, and real-time biometric metrics.",
+    category: "mobile",
+    tags: ["React Native", "Expo", "HealthKit", "Node.js"],
+    mockup: "/images/mobile.png",
+  },
+  {
+    id: "mob-2",
+    title: "Encrypted Social Network",
+    desc: "Real-time communication network with end-to-end encrypted messaging, media vaults, and interactive feeds.",
+    category: "mobile",
+    tags: ["Flutter", "Firebase", "WebSockets", "Dart"],
+    mockup: "/images/mobile.png",
+  },
+  {
+    id: "mob-3",
+    title: "Global Weather Radar",
+    desc: "Hyper-local atmospheric forecast app powered by Doppler radar feeds and predictive machine learning models.",
+    category: "mobile",
+    tags: ["React Native", "Mapbox", "TypeScript", "Redux"],
+    mockup: "/images/mobile.png",
+  },
+  {
+    id: "mob-4",
+    title: "Lossless Audio Streamer",
+    desc: "Studio-grade music platform with spatial audio decoding, offline caching, and collaborative playlists.",
+    category: "mobile",
+    tags: ["Swift / Kotlin", "Audio Engine", "AWS S3", "GraphQL"],
+    mockup: "/images/mobile.png",
+  },
+  {
+    id: "mob-5",
+    title: "Focus & Team Studio",
+    desc: "Collaborative team workspace with offline-first synchronization, time tracking, and productivity sprints.",
+    category: "mobile",
+    tags: ["React Native", "WatermelonDB", "Expo", "Tailwind"],
+    mockup: "/images/mobile.png",
+  },
+];
 
 export default function Index() {
   const leftConicRef  = useRef<HTMLDivElement>(null);
@@ -20,7 +110,7 @@ export default function Index() {
   const [hasReturnedFromProjects, setHasReturnedFromProjects] = useState(false);
   const [projectsType, setProjectsType] = useState<"web" | "mobile" | null>(null);
   const [isClosingProjects, setIsClosingProjects] = useState(false);
-  const totalSections = 3;
+  const totalSections = 4; // 0: Hero, 1: Projects, 2: About Me, 3: Contact
 
   useEffect(() => {
     let touchStartY = 0;
@@ -32,28 +122,43 @@ export default function Index() {
       setCurrentSection(clamped);
       setTimeout(() => setIsAnimating(false), 900);
     };
-    const onWheel = (e: WheelEvent) => { e.preventDefault(); if (e.deltaY > 30) goTo(currentSection + 1); else if (e.deltaY < -30) goTo(currentSection - 1); };
+    const onWheel = (e: WheelEvent) => {
+      e.preventDefault();
+      if (e.deltaY > 30) goTo(currentSection + 1);
+      else if (e.deltaY < -30) goTo(currentSection - 1);
+    };
     const onTouchStart = (e: TouchEvent) => { touchStartY = e.touches[0].clientY; };
-    const onTouchEnd   = (e: TouchEvent) => { const d = touchStartY - e.changedTouches[0].clientY; if (d > 40) goTo(currentSection + 1); else if (d < -40) goTo(currentSection - 1); };
+    const onTouchEnd   = (e: TouchEvent) => {
+      const d = touchStartY - e.changedTouches[0].clientY;
+      if (d > 40) goTo(currentSection + 1);
+      else if (d < -40) goTo(currentSection - 1);
+    };
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("touchstart", onTouchStart, { passive: true });
     window.addEventListener("touchend",   onTouchEnd,   { passive: true });
-    return () => { window.removeEventListener("wheel", onWheel); window.removeEventListener("touchstart", onTouchStart); window.removeEventListener("touchend", onTouchEnd); };
+    return () => {
+      window.removeEventListener("wheel", onWheel);
+      window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchend",   onTouchEnd);
+    };
   }, [currentSection, isAnimating]);
 
+  // Wide light sweep: Starts wide at outer left/right and sweeps INWARD to center!
   useEffect(() => {
     const lc = leftConicRef.current, rc = rightConicRef.current;
     const ll = leftLinearRef.current, rl = rightLinearRef.current;
     if (!lc || !rc || !ll || !rl) return;
-    const startArc = 185, endArc = 115, dur = 1400, t0 = Date.now();
-    const ease = (t: number) => 1 - Math.pow(1 - t, 4);
+
+    const startArc = 260, endArc = 165, dur = 2800, t0 = Date.now();
+    const ease = (t: number) => 1 - Math.pow(1 - t, 2.2);
+
     function tick() {
       const p = ease(Math.min(1, (Date.now() - t0) / dur));
       const arc = startArc + (endArc - startArc) * p;
-      const c20 = (arc * 0.18).toFixed(1), c55 = (arc * 0.55).toFixed(1);
-      const midL = (38 + p * 8).toFixed(0);
-      const conic = `conic-gradient(from 270deg at 50% 50%, #FFFFFF 0.3deg, #00EEFF ${c20}deg, hsl(215,100%,${midL}%) ${c55}deg, #020A1E ${arc.toFixed(1)}deg, #050D1F 360deg)`;
-      const linear = `linear-gradient(180deg, #050D1F 0%, rgba(5,13,31,0) 35%, rgba(5,13,31,0) 100%)`;
+      const c20 = (arc * 0.22).toFixed(1), c55 = (arc * 0.58).toFixed(1);
+      const midL = (18 + p * 6).toFixed(0);
+      const conic = `conic-gradient(from 270deg at 50% 50%, #C4F1FF 0.2deg, #00D5E8 ${c20}deg, hsl(218,80%,${midL}%) ${c55}deg, #020612 ${arc.toFixed(1)}deg, #020612 360deg)`;
+      const linear = `linear-gradient(180deg, #020612 0%, rgba(2,6,18,0.15) 40%, rgba(2,6,18,0.92) 100%)`;
       lc.style.background = rc.style.background = conic;
       ll.style.background = rl.style.background = linear;
       if (p < 1) requestAnimationFrame(tick);
@@ -69,19 +174,15 @@ export default function Index() {
     function tick() {
       const t = (Date.now() - t0) / 1000;
       const p = (Math.sin(t * (Math.PI / 6)) + 1) / 2;
-      const r = Math.round(5  + p * 2);
-      const g = Math.round(13 + p * 7);
-      const b = Math.round(31 + p * 9);
+      const r = Math.round(2 + p * 1.5);
+      const g = Math.round(5 + p * 2.5);
+      const b = Math.round(14 + p * 4);
       bg.style.background = `rgb(${r},${g},${b})`;
       raf = requestAnimationFrame(tick);
     }
     tick();
     return () => cancelAnimationFrame(raf);
   }, []);
-
-  useEffect(() => {
-    if (currentSection !== 1) { }
-  }, [currentSection]);
 
   // Pixel detection for hover
   useEffect(() => {
@@ -91,7 +192,6 @@ export default function Index() {
         const rightImg = rightImgRef.current;
         if (!leftImg || !rightImg) return;
 
-        // Load left image
         await new Promise((resolve, reject) => {
           leftImg.onload = resolve;
           leftImg.onerror = reject;
@@ -99,7 +199,6 @@ export default function Index() {
           leftImg.crossOrigin = "anonymous";
         });
 
-        // Load right image
         await new Promise((resolve, reject) => {
           rightImg.onload = resolve;
           rightImg.onerror = reject;
@@ -107,7 +206,6 @@ export default function Index() {
           rightImg.crossOrigin = "anonymous";
         });
 
-        // Create canvases for pixel detection
         const leftCanvas = leftCanvasRef.current;
         const rightCanvas = rightCanvasRef.current;
         if (leftCanvas && rightCanvas) {
@@ -137,7 +235,7 @@ export default function Index() {
     if (!ctx) return true;
     try {
       const imageData = ctx.getImageData(x, y, 1, 1);
-      return imageData.data[3] < 128; // alpha channel
+      return imageData.data[3] < 128;
     } catch {
       return true;
     }
@@ -156,12 +254,9 @@ export default function Index() {
 
     if (!leftCanvas || !rightCanvas) return;
 
-    // For left image: positioned at left with 75% size
     const leftImgX = Math.round((x / (rect.width * 0.75)) * leftCanvas.width);
     const leftImgY = Math.round((y / rect.height) * leftCanvas.height);
 
-    // For right image: positioned at right with 78% size
-    // Right image starts at: rect.width - (rect.width * 0.78)
     const rightStart = rect.width * (1 - 0.78);
     const rightImgX = Math.round(((x - rightStart) / (rect.width * 0.78)) * rightCanvas.width);
     const rightImgY = Math.round((y / rect.height) * rightCanvas.height);
@@ -169,7 +264,6 @@ export default function Index() {
     const leftTransparent = isPixelTransparent(leftCanvas, leftImgX, leftImgY);
     const rightTransparent = isPixelTransparent(rightCanvas, rightImgX, rightImgY);
 
-    // Prioritize left image if both are non-transparent (since it has higher zIndex)
     if (!leftTransparent) {
       setHoveredImage("left");
     } else if (!rightTransparent) {
@@ -186,10 +280,10 @@ export default function Index() {
   const handleSection2Click = () => {
     if (hoveredImage === "left") {
       setSection2Clicked(true);
-      setTimeout(() => setProjectsType("web"), 500);
+      setTimeout(() => setProjectsType("web"), 450);
     } else if (hoveredImage === "right") {
       setSection2Clicked(true);
-      setTimeout(() => setProjectsType("mobile"), 500);
+      setTimeout(() => setProjectsType("mobile"), 450);
     }
   };
 
@@ -215,8 +309,11 @@ export default function Index() {
   };
 
   const sectionStyle = (idx: number): React.CSSProperties => ({
-    position: "absolute", inset: 0,
-    display: "flex", alignItems: "center", justifyContent: "center",
+    position: "absolute",
+    inset: 0,
+    display: "flex",
+    alignItems: "center",
+    justifyContent: "center",
     opacity: currentSection === idx ? 1 : 0,
     transform: getTransform(idx),
     transition: "opacity 0.75s cubic-bezier(0.4,0,0.2,1), transform 0.75s cubic-bezier(0.4,0,0.2,1)",
@@ -225,296 +322,550 @@ export default function Index() {
     willChange: "opacity, transform",
   });
 
+  const activeProjects = projectsType === "web" ? WEB_PROJECTS : MOBILE_PROJECTS;
+
   return (
-    <div className="fixed inset-0 w-screen h-screen overflow-hidden">
-      <div ref={bgRef} className="absolute inset-0" style={{ background: "#050D1F", zIndex: 0 }} />
+    <div className="fixed inset-0 w-screen h-screen overflow-hidden font-sans">
+      <div ref={bgRef} className="absolute inset-0" style={{ background: "#020612", zIndex: 0 }} />
 
-      {/* ── SECTION 1: HERO ── */}
+      {/* ── SECTION 1: HERO (SUPER LASER THEME) ── */}
       <div style={sectionStyle(0)}>
-        <div ref={leftConicRef} className="absolute inset-y-0 left-0 w-1/2 pointer-events-none"
-          style={{ background: "conic-gradient(from 270deg at 50% 50%, #FFFFFF 0.3deg, #00EEFF 33deg, #1A6FFF 101deg, #020A1E 185deg, #050D1F 360deg)", height: "120%", top: "-10%", transform: "scaleX(-1)" }} />
-        <div ref={rightConicRef} className="absolute inset-y-0 right-0 w-1/2 pointer-events-none"
-          style={{ background: "conic-gradient(from 270deg at 50% 50%, #FFFFFF 0.3deg, #00EEFF 33deg, #1A6FFF 101deg, #020A1E 185deg, #050D1F 360deg)", height: "120%", top: "-10%" }} />
-        <div ref={leftLinearRef} className="absolute inset-y-0 left-0 w-1/2 pointer-events-none"
-          style={{ background: "linear-gradient(180deg, #050D1F 0%, rgba(5,13,31,0) 35%, rgba(5,13,31,0) 100%)" }} />
-        <div ref={rightLinearRef} className="absolute inset-y-0 right-0 w-1/2 pointer-events-none"
-          style={{ background: "linear-gradient(180deg, #050D1F 0%, rgba(5,13,31,0) 35%, rgba(5,13,31,0) 100%)" }} />
+        {/* Wide Dual Symmetrical Conic Lights */}
+        <div
+          ref={leftConicRef}
+          className="absolute inset-y-0 left-0 w-1/2 pointer-events-none"
+          style={{
+            background:
+              "conic-gradient(from 270deg at 50% 50%, #C4F1FF 0.2deg, #00D5E8 35deg, hsl(218,80%,22%) 95deg, #020612 165deg, #020612 360deg)",
+            height: "130%",
+            top: "-15%",
+            transform: "scaleX(-1)",
+          }}
+        />
+        <div
+          ref={rightConicRef}
+          className="absolute inset-y-0 right-0 w-1/2 pointer-events-none"
+          style={{
+            background:
+              "conic-gradient(from 270deg at 50% 50%, #C4F1FF 0.2deg, #00D5E8 35deg, hsl(218,80%,22%) 95deg, #020612 165deg, #020612 360deg)",
+            height: "130%",
+            top: "-15%",
+          }}
+        />
+        <div
+          ref={leftLinearRef}
+          className="absolute inset-y-0 left-0 w-1/2 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, #020612 0%, rgba(2,6,18,0.15) 40%, rgba(2,6,18,0.92) 100%)",
+          }}
+        />
+        <div
+          ref={rightLinearRef}
+          className="absolute inset-y-0 right-0 w-1/2 pointer-events-none"
+          style={{
+            background:
+              "linear-gradient(180deg, #020612 0%, rgba(2,6,18,0.15) 40%, rgba(2,6,18,0.92) 100%)",
+          }}
+        />
 
-        <div className="relative flex flex-col items-center text-center px-4 w-full"
-          style={{ transform: "translateY(-90px)", zIndex: 10, animation: "heroZoomIn 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both" }}>
-          <h1 className="leading-tight" style={{ fontFamily: "'Italiana', serif", fontSize: "clamp(2.5rem, 10vw, 6rem)", maxWidth: "1183px", display: "flex", flexWrap: "wrap", justifyContent: "center", gap: "0.25em" }}>
+        {/* ── LASER SUPER ANIMATION 1: RADIANT HORIZONTAL LASER BEAM ── */}
+        <div className="absolute top-[52%] inset-x-0 h-px pointer-events-none z-10 overflow-hidden">
+          {/* Main Electric Cyan Core Laser */}
+          <div
+            className="w-full h-[1.5px] bg-gradient-to-r from-transparent via-[#00EEFF] to-transparent shadow-[0_0_20px_#00EEFF,0_0_6px_#FFFFFF]"
+            style={{ animation: "laserPulse 3.5s ease-in-out infinite" }}
+          />
+          {/* Traveling Laser Pulse Tracer */}
+          <div
+            className="absolute top-0 h-full w-40 bg-gradient-to-r from-transparent via-white to-transparent"
+            style={{
+              animation: "laserTravel 4s cubic-bezier(0.4, 0, 0.2, 1) infinite",
+              filter: "drop-shadow(0 0 12px #00EEFF)",
+            }}
+          />
+        </div>
+
+        {/* ── LASER SUPER ANIMATION 2: DUAL ANGLED PROJECTOR LASER RAYS ── */}
+        <div
+          className="absolute bottom-0 left-0 w-[45vw] h-px origin-left pointer-events-none opacity-40"
+          style={{
+            transform: "rotate(-25deg)",
+            background: "linear-gradient(90deg, #00EEFF 0%, rgba(0,238,255,0.4) 60%, transparent 100%)",
+            boxShadow: "0 0 16px rgba(0,238,255,0.6)",
+          }}
+        />
+        <div
+          className="absolute bottom-0 right-0 w-[45vw] h-px origin-right pointer-events-none opacity-40"
+          style={{
+            transform: "rotate(25deg)",
+            background: "linear-gradient(-90deg, #00EEFF 0%, rgba(0,238,255,0.4) 60%, transparent 100%)",
+            boxShadow: "0 0 16px rgba(0,238,255,0.6)",
+          }}
+        />
+
+        {/* ── LASER SUPER ANIMATION 3: VERTICAL SCANNER BEAM ── */}
+        <div
+          className="absolute inset-x-0 h-24 pointer-events-none z-10 opacity-30"
+          style={{
+            background: "linear-gradient(180deg, transparent 0%, rgba(0,238,255,0.12) 50%, #00EEFF 98%, transparent 100%)",
+            animation: "verticalLaserScan 6s ease-in-out infinite",
+          }}
+        />
+
+        {/* Wide Horizon Ambient Glow */}
+        <div
+          className="absolute top-[44%] left-1/2 -translate-x-1/2 -translate-y-1/2 w-screen max-w-[1400px] h-[320px] pointer-events-none opacity-20 blur-[100px]"
+          style={{
+            background:
+              "radial-gradient(ellipse 85% 45% at 50% 50%, #00EEFF 0%, #052255 50%, transparent 75%)",
+          }}
+        />
+
+        {/* Soft bottom dark feathering */}
+        <div
+          className="absolute inset-x-0 bottom-0 h-3/5 pointer-events-none"
+          style={{ background: "linear-gradient(0deg, #020612 20%, rgba(2,6,18,0.85) 55%, transparent 100%)" }}
+        />
+
+        {/* Main Hero Content */}
+        <div
+          className="relative flex flex-col items-center text-center px-4 w-full"
+          style={{
+            transform: "translateY(-65px)",
+            zIndex: 10,
+            animation: "heroZoomIn 1.6s cubic-bezier(0.16, 1, 0.3, 1) 0.2s both",
+          }}
+        >
+          {/* Luminous Chrome Heading */}
+          <h1
+            className="leading-tight select-none"
+            style={{
+              fontFamily: "'Italiana', serif",
+              fontSize: "clamp(2.5rem, 8.5vw, 5.8rem)",
+              maxWidth: "1200px",
+              display: "flex",
+              flexWrap: "wrap",
+              justifyContent: "center",
+              gap: "0.28em",
+            }}
+          >
             {["WE", "BUILD", "DIGITAL", "EXPERIENCES"].map((word) => (
-              <span key={word} style={{ background: "linear-gradient(90deg, #4A5568 0%, #2D3748 40%, #1A202C 100%)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text", display: "inline-block", filter: "drop-shadow(0 0 18px rgba(0,229,255,0.2))", WebkitTextStrokeWidth: "1px", WebkitTextStrokeColor: "rgba(74,85,104,0.6)" }}>
+              <span
+                key={word}
+                style={{
+                  background: "linear-gradient(180deg, #FFFFFF 15%, #E2F5FF 55%, #88E2FF 100%)",
+                  WebkitBackgroundClip: "text",
+                  WebkitTextFillColor: "transparent",
+                  backgroundClip: "text",
+                  display: "inline-block",
+                  filter:
+                    "drop-shadow(0 0 20px rgba(0, 200, 225, 0.35)) drop-shadow(0 6px 14px rgba(0, 0, 0, 0.95))",
+                  WebkitTextStrokeWidth: "1px",
+                  WebkitTextStrokeColor: "rgba(255, 255, 255, 0.4)",
+                  letterSpacing: "0.03em",
+                }}
+              >
                 {word}
               </span>
             ))}
           </h1>
-          <p className="mt-6 text-[#C0C0C0]" style={{ fontFamily: "'Jersey 10', sans-serif", fontSize: "clamp(1rem, 2.5vw, 2.25rem)", letterSpacing: "0.15em" }}>
+
+          {/* Subtitle in Glowing Ice Silver */}
+          <p
+            className="mt-6 text-[#D5EBF8]"
+            style={{
+              fontFamily: "'Jersey 10', sans-serif",
+              fontSize: "clamp(1.15rem, 2.5vw, 2.3rem)",
+              letterSpacing: "0.18em",
+              textShadow: "0 0 14px rgba(0, 200, 225, 0.35), 0 2px 8px rgba(0,0,0,0.9)",
+            }}
+          >
             W h e r e &nbsp; P e r f o r m a n c e &nbsp; M e e t s &nbsp; D e s i g n .
           </p>
         </div>
 
-        <p className="absolute z-10 text-white text-center px-4" style={{ fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif", fontSize: "clamp(0.9rem, 2vw, 1.5rem)", bottom: "3.5rem" }}>
+        {/* Bottom Tagline (Clean Text - No Capsule) */}
+        <p className="absolute z-10 bottom-14 text-center px-4 text-slate-400 font-sans tracking-wide text-xs sm:text-sm md:text-base select-none">
           Mobile Applications &amp; Web Systems Built for Modern Businesses.
         </p>
 
-        <div className="absolute left-1/2 z-20" style={{ bottom: "1.2rem", transform: "translateX(-50%)", animation: "bounce 1.4s ease-in-out infinite" }}>
-          <div style={{ width: 20, height: 20, borderRight: "1.5px solid #00EEFF", borderBottom: "1.5px solid #00EEFF", transform: "rotate(45deg)", opacity: 0.7 }} />
+        {/* Scroll Indicator Prompt */}
+        <div
+          className="absolute left-1/2 z-20 flex flex-col items-center gap-1 cursor-pointer group"
+          onClick={() => {
+            if (!isAnimating) {
+              setIsAnimating(true);
+              setCurrentSection(1);
+              setTimeout(() => setIsAnimating(false), 900);
+            }
+          }}
+          style={{
+            bottom: "0.9rem",
+            transform: "translateX(-50%)",
+            animation: "bounce 1.6s ease-in-out infinite",
+          }}
+        >
+          <span className="text-[10px] font-mono tracking-[0.2em] text-cyan-400/70 uppercase group-hover:text-cyan-300 transition-colors">
+            EXPLORE
+          </span>
+          <div
+            style={{
+              width: 14,
+              height: 14,
+              borderRight: "1.5px solid #00EEFF",
+              borderBottom: "1.5px solid #00EEFF",
+              transform: "rotate(45deg)",
+              opacity: 0.7,
+            }}
+          />
         </div>
+
+        {/* ── LASER SENSOR CORNER RETICLES ── */}
+        <div className="absolute top-6 left-6 w-3 h-3 border-t border-l border-cyan-400/40 pointer-events-none" />
+        <div className="absolute top-6 right-6 w-3 h-3 border-t border-r border-cyan-400/40 pointer-events-none" />
+        <div className="absolute bottom-6 left-6 w-3 h-3 border-b border-l border-cyan-400/40 pointer-events-none" />
+        <div className="absolute bottom-6 right-6 w-3 h-3 border-b border-r border-cyan-400/40 pointer-events-none" />
       </div>
 
-     {/* ── SECTION 2 ── */}
-  <div 
-    ref={section2Ref}
-    onMouseMove={handleMouseMoveSection2}
-    onMouseLeave={handleMouseLeaveSection2}
-    onClick={handleSection2Click}
-    style={{ ...sectionStyle(1), cursor: hoveredImage === "left" || hoveredImage === "right" ? "pointer" : "default" }}
-  >
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        backgroundImage: "url('/left.png')",
-        backgroundSize: "75% 100%",
-        backgroundPosition: "left",
-        backgroundRepeat: "no-repeat",
-        animation: section2Clicked
-          ? "slideOutLeft 5s cubic-bezier(0.22,0.62,0.36,1) forwards"
-          : section2SlidingIn
-            ? "slideInLeft 0.9s cubic-bezier(0.22,1,0.36,1) both"
-            : (currentSection === 1 && !hasReturnedFromProjects ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both" : "none"),
-        zIndex: 4,
-        pointerEvents: "none",
-        filter: hoveredImage === "left" ? "brightness(1.15)" : "brightness(1)",
-        transform: hoveredImage === "left" ? "scale(1.05)" : "scale(1)",
-        transition: "filter 0.3s ease-out, transform 0.3s ease-out",
-      }}
-    />
-    <div
-      style={{
-        position: "absolute",
-        inset: 0,
-        width: "100%",
-        backgroundImage: "url('/right.png')",
-        backgroundSize: "78% 100%",
-        backgroundPosition: "right",
-        backgroundRepeat: "no-repeat",
-        mixBlendMode: "darken",
-        animation: section2Clicked
-          ? "slideOutRight 5s cubic-bezier(0.22,0.62,0.36,1) forwards"
-          : section2SlidingIn
-            ? "slideInRight 0.9s cubic-bezier(0.22,1,0.36,1) both"
-            : (currentSection === 1 && !hasReturnedFromProjects ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both" : "none"),
-        zIndex: 3,
-        pointerEvents: "none",
-        filter: hoveredImage === "right" ? "brightness(1.15)" : "brightness(1)",
-        transform: hoveredImage === "right" ? "scale(1.05)" : "scale(1)",
-        transition: "filter 0.3s ease-out, transform 0.3s ease-out",
-      }}
-    />
+      {/* ── SECTION 2: WEB VS MOBILE SPLIT SHOWCASE ── */}
+      <div
+        ref={section2Ref}
+        onMouseMove={handleMouseMoveSection2}
+        onMouseLeave={handleMouseLeaveSection2}
+        onClick={handleSection2Click}
+        style={{
+          ...sectionStyle(1),
+          cursor: hoveredImage === "left" || hoveredImage === "right" ? "pointer" : "default",
+        }}
+      >
+        {/* Left (Web) Showcase */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            backgroundImage: "url('/left.png')",
+            backgroundSize: "75% 100%",
+            backgroundPosition: "left",
+            backgroundRepeat: "no-repeat",
+            animation: section2Clicked
+              ? "slideOutLeft 5s cubic-bezier(0.22,0.62,0.36,1) forwards"
+              : section2SlidingIn
+              ? "slideInLeft 0.9s cubic-bezier(0.22,1,0.36,1) both"
+              : currentSection === 1 && !hasReturnedFromProjects
+              ? "slideFromBottom 0.9s cubic-bezier(0.22,1,0.36,1) 0.1s both"
+              : "none",
+            zIndex: 4,
+            pointerEvents: "none",
+            filter:
+              hoveredImage === "left"
+                ? "brightness(1.18) drop-shadow(0 0 30px rgba(0,200,225,0.35))"
+                : "brightness(0.95)",
+            transform: hoveredImage === "left" ? "scale(1.03)" : "scale(1)",
+            transition: "filter 0.35s ease-out, transform 0.35s ease-out",
+          }}
+        />
 
-    {/* Hidden images for pixel detection */}
-    <img ref={leftImgRef} style={{ display: "none" }} alt="left" />
-    <img ref={rightImgRef} style={{ display: "none" }} alt="right" />
-    <canvas ref={leftCanvasRef} style={{ display: "none" }} />
-    <canvas ref={rightCanvasRef} style={{ display: "none" }} />
-  </div>
-      {/* ── SECTION 3 ── */}
+        {/* Right (Mobile) Showcase */}
+        <div
+          style={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            backgroundImage: "url('/right.png')",
+            backgroundSize: "78% 100%",
+            backgroundPosition: "right",
+            backgroundRepeat: "no-repeat",
+            mixBlendMode: "darken",
+            animation: section2Clicked
+              ? "slideOutRight 5s cubic-bezier(0.22,0.62,0.36,1) forwards"
+              : section2SlidingIn
+              ? "slideInRight 0.9s cubic-bezier(0.22,1,0.36,1) both"
+              : currentSection === 1 && !hasReturnedFromProjects
+              ? "slideFromTop 0.9s cubic-bezier(0.22,1,0.36,1) 0.25s both"
+              : "none",
+            zIndex: 3,
+            pointerEvents: "none",
+            filter:
+              hoveredImage === "right"
+                ? "brightness(1.18) drop-shadow(0 0 30px rgba(0,200,225,0.35))"
+                : "brightness(0.95)",
+            transform: hoveredImage === "right" ? "scale(1.03)" : "scale(1)",
+            transition: "filter 0.35s ease-out, transform 0.35s ease-out",
+          }}
+        />
+
+        {/* Hidden images & canvases for pixel detection */}
+        <img ref={leftImgRef} style={{ display: "none" }} alt="left" />
+        <img ref={rightImgRef} style={{ display: "none" }} alt="right" />
+        <canvas ref={leftCanvasRef} style={{ display: "none" }} />
+        <canvas ref={rightCanvasRef} style={{ display: "none" }} />
+      </div>
+
+      {/* ── SECTION 3: ABOUT ME (FOUNDER SHOWCASE) ── */}
       <div style={{ ...sectionStyle(2) }}>
-        <div className="text-center px-8">
-          <h2 className="text-[#00F2FF] mb-4" style={{ fontFamily: "'Italiana', serif", fontSize: "clamp(2rem, 6vw, 4rem)" }}>Let's Create Together</h2>
-          <p className="text-[#C0C0C0] max-w-xl mx-auto" style={{ fontFamily: "Calibri, 'Segoe UI', Arial, sans-serif", fontSize: "1.15rem", lineHeight: 1.7 }}>
-            Reach out and let's build something unforgettable for your users.
+        <AboutSection
+          onContactClick={() => {
+            if (!isAnimating) {
+              setIsAnimating(true);
+              setCurrentSection(3);
+              setTimeout(() => setIsAnimating(false), 900);
+            }
+          }}
+        />
+      </div>
+
+      {/* ── SECTION 4: LET'S CREATE TOGETHER / CONTACT ── */}
+      <div style={{ ...sectionStyle(3) }}>
+        <div className="relative max-w-2xl mx-auto px-6 text-center z-10">
+          <h2
+            className="text-white mb-4 leading-tight"
+            style={{
+              fontFamily: "'Italiana', serif",
+              fontSize: "clamp(2.4rem, 6vw, 4.5rem)",
+              textShadow: "0 0 25px rgba(0, 200, 225, 0.35)",
+            }}
+          >
+            Let's Create <span className="text-cyan-300">Together</span>
+          </h2>
+
+          <p
+            className="text-slate-400 mx-auto mb-8 leading-relaxed font-sans"
+            style={{ fontSize: "clamp(1rem, 2vw, 1.2rem)" }}
+          >
+            Reach out to architect high-performance web platforms and bespoke mobile applications built for modern scale.
           </p>
+
+          <div className="flex flex-wrap items-center justify-center gap-4">
+            <a
+              href="mailto:contact@ceylonsoft.com"
+              className="inline-flex items-center gap-2.5 px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 text-slate-950 font-bold font-mono text-sm tracking-wider shadow-[0_0_20px_rgba(0,200,225,0.3)] hover:shadow-[0_0_30px_rgba(0,200,225,0.5)] hover:scale-105 transition-all"
+            >
+              <span>INITIATE PROJECT</span>
+              <ArrowRight className="w-4 h-4" />
+            </a>
+
+            <button
+              onClick={() => {
+                if (!isAnimating) {
+                  setIsAnimating(true);
+                  setCurrentSection(1);
+                  setTimeout(() => setIsAnimating(false), 900);
+                }
+              }}
+              className="inline-flex items-center gap-2 px-6 py-3 rounded-xl bg-white/[0.03] border border-cyan-400/20 text-cyan-300 font-mono text-sm tracking-wider hover:bg-cyan-950/40 hover:border-cyan-400/40 transition-all"
+            >
+              <Layers className="w-4 h-4 text-cyan-400" />
+              <span>EXPLORE SHOWCASE</span>
+            </button>
+          </div>
         </div>
       </div>
 
-      {/* ── DOT NAV ── */}
-      <div className="fixed right-6 top-1/2 z-50 flex flex-col gap-3" style={{ transform: "translateY(-50%)" }}>
-        {[0, 1, 2].map((i) => (
-          <button key={i}
-            onClick={() => { if (!isAnimating && i !== currentSection) { setIsAnimating(true); setCurrentSection(i); setTimeout(() => setIsAnimating(false), 900); } }}
-            style={{ width: i === currentSection ? 10 : 6, height: i === currentSection ? 10 : 6, borderRadius: "50%", background: i === currentSection ? "#00F2FF" : "rgba(255,255,255,0.3)", border: i === currentSection ? "none" : "1px solid rgba(255,255,255,0.2)", transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)", cursor: "pointer", padding: 0 }} />
+      {/* ── DOT NAVIGATION (4 SECTIONS) ── */}
+      <div
+        className="fixed right-6 top-1/2 z-50 flex flex-col gap-3.5"
+        style={{ transform: "translateY(-50%)" }}
+      >
+        {[0, 1, 2, 3].map((i) => (
+          <button
+            key={i}
+            aria-label={`Go to section ${i + 1}`}
+            onClick={() => {
+              if (!isAnimating && i !== currentSection) {
+                setIsAnimating(true);
+                setCurrentSection(i);
+                setTimeout(() => setIsAnimating(false), 900);
+              }
+            }}
+            style={{
+              width: i === currentSection ? 10 : 6,
+              height: i === currentSection ? 10 : 6,
+              borderRadius: "50%",
+              background: i === currentSection ? "#00F2FF" : "rgba(255,255,255,0.25)",
+              border: i === currentSection ? "none" : "1px solid rgba(255,255,255,0.15)",
+              boxShadow: i === currentSection ? "0 0 10px #00F2FF" : "none",
+              transition: "all 0.4s cubic-bezier(0.4,0,0.2,1)",
+              cursor: "pointer",
+              padding: 0,
+            }}
+          />
         ))}
       </div>
 
-      {/* ── PROJECTS MODAL ── */}
+      {/* ── 3D PROJECTS MODAL (Smooth Luxury Deck Deal + Sequential Laser Scanner) ── */}
       {projectsType && (
-        <div style={{
-          position: "fixed",
-          inset: 0,
-          backgroundColor: "rgba(5, 13, 31, 0.95)",
-          zIndex: 100,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          animation: isClosingProjects ? "fadeOut 0.4s ease-out" : "fadeIn 0.6s ease-out",
-          backdropFilter: "blur(4px)",
-        }}>
-          <div style={{
-            width: "100vw",
-            minHeight: "100vh",
+        <div
+          style={{
+            position: "fixed",
+            inset: 0,
+            backgroundColor: "rgba(2, 6, 18, 0.98)",
+            zIndex: 100,
             display: "flex",
-            flexDirection: "column",
             alignItems: "center",
-            justifyContent: "flex-start",
-            paddingTop: "6rem",
-            animation: "popIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
-          }}>
-            <h1 style={{
-              textAlign: "center",
-              color: "#00F2FF",
-              fontFamily: "'Italiana', serif",
-              fontSize: "clamp(2rem, 6vw, 4rem)",
-              marginBottom: "3rem",
-              animation: "slideDown 0.8s ease-out",
-            }}>
-              {projectsType === "web" ? "Web Projects" : "Mobile Projects"}
+            justifyContent: "center",
+            animation: isClosingProjects ? "fadeOut 0.4s ease-out" : "fadeIn 0.6s ease-out",
+            backdropFilter: "blur(14px)",
+          }}
+        >
+          {/* Top-Right Close Button */}
+          <button
+            onClick={closeProjectsModal}
+            className="absolute top-6 right-6 z-50 p-2.5 rounded-full bg-cyan-950/60 border border-cyan-400/25 text-cyan-300 hover:text-white hover:border-cyan-400 hover:scale-110 transition-all shadow-lg"
+            aria-label="Close projects modal"
+          >
+            <X className="w-5 h-5" />
+          </button>
+
+          <div
+            style={{
+              width: "100vw",
+              minHeight: "100vh",
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              justifyContent: "flex-start",
+              paddingTop: "4rem",
+              paddingBottom: "5rem",
+              animation: "popIn 0.8s cubic-bezier(0.34, 1.56, 0.64, 1)",
+              overflowY: "auto",
+            }}
+          >
+            {/* Clean Section Title */}
+            <h1
+              style={{
+                textAlign: "center",
+                color: "#FFFFFF",
+                fontFamily: "'Italiana', serif",
+                fontSize: "clamp(2rem, 5vw, 3.6rem)",
+                letterSpacing: "0.03em",
+                textShadow: "0 0 25px rgba(0, 200, 225, 0.35)",
+                marginBottom: "2.5rem",
+              }}
+            >
+              {projectsType === "web" ? "Web Systems & Platforms" : "Mobile Applications"}
             </h1>
 
-            <div style={{
-              position: "relative",
-              width: "100%",
-              minHeight: "400px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              padding: "2rem",
-            }}>
-              {(projectsType === "web"
-                ? [
-                    { title: "E-Commerce Platform", desc: "Full-stack React & Node.js" },
-                    { title: "Analytics Dashboard", desc: "Real-time data visualization" },
-                    { title: "CMS System", desc: "Headless content management" },
-                    { title: "Admin Dashboard", desc: "User management system" },
-                    { title: "Blog Engine", desc: "SEO-optimized publishing" },
-                  ]
-                : [
-                    { title: "Fitness Tracker App", desc: "React Native cross-platform" },
-                    { title: "Social Feed App", desc: "Real-time messaging system" },
-                    { title: "Weather Forecast", desc: "Live weather updates" },
-                    { title: "Music Streaming", desc: "Audio streaming platform" },
-                    { title: "Task Manager", desc: "Productivity & collaboration" },
-                  ]
-              ).map((project, idx) => {
-                // Final positions: Card1(left), Card3(center-left), Card5(center), Card4(center-right), Card2(right)
-                // Index mapping: 0=Card1, 1=Card2, 2=Card3, 3=Card4, 4=Card5
-                const finalOrder = [0, 2, 4, 3, 1]; // Order they appear in final layout
+            {/* Stage-Dealt 3D Project Cards Container */}
+            <div
+              style={{
+                position: "relative",
+                width: "100%",
+                minHeight: "560px",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                padding: "1rem",
+                perspective: 1200,
+                transformStyle: "preserve-3d",
+              }}
+            >
+              {activeProjects.map((project, idx) => {
+                const finalOrder = [0, 2, 4, 3, 1];
                 const finalPosition = finalOrder.indexOf(idx);
-                const cardSpacing = 320; // pixels between each card center
-                const centerOffset = (finalPosition - 2) * cardSpacing; // -2 to center Card5
-
-                let animationName = "";
-                if (idx === 0 || idx === 1) {
-                  animationName = "cardStage1";
-                } else if (idx === 2 || idx === 3) {
-                  animationName = "cardStage2";
-                } else if (idx === 4) {
-                  animationName = "cardStage3";
-                }
-
-                let startOffset = centerOffset;
-                // For first stage cards, calculate starting position close to center
-                // Using same spacing as final layout (320px between cards)
-                if (idx === 0 || idx === 2) {
-                  startOffset = -160; // Card 1 & 3 start with 320px spacing
-                } else if (idx === 1 || idx === 3) {
-                  startOffset = 160; // Card 2 & 4 start with 320px spacing
-                }
+                const cardSpacing = 360;
+                const centerOffset = (finalPosition - 2) * cardSpacing;
 
                 return (
-                    <div
-                      key={idx}
-                      style={{
-                        position: "absolute",
-                        width: "300px",
-                        height: "260px",
-                        display: "flex",
-                        flexDirection: "column",
-                        justifyContent: "center",
-                        background: "linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(26, 111, 255, 0.1))",
-                        border: "1px solid rgba(0, 242, 255, 0.2)",
-                        borderRadius: "12px",
-                        padding: "1.5rem",
-                        boxSizing: "border-box",
-                        animation: `${animationName} 4.2s cubic-bezier(0.25, 0.46, 0.45, 0.94) forwards`,
-                        transition: "all 0.3s ease-out",
-                        cursor: "pointer",
-                        "--startX": `${startOffset}px`,
-                        "--finalX": `${centerOffset}px`,
-                      } as React.CSSProperties & { "--startX": string; "--finalX": string }}
-                    onMouseEnter={(e) => {
-                      e.currentTarget.style.borderColor = "#00F2FF";
-                      e.currentTarget.style.background = "linear-gradient(135deg, rgba(0, 242, 255, 0.2), rgba(26, 111, 255, 0.2))";
-                      e.currentTarget.style.transform = "translateY(-10px)";
-                      e.currentTarget.style.boxShadow = "0 20px 40px rgba(0, 242, 255, 0.2)";
+                  <motion.div
+                    key={project.id}
+                    initial={{
+                      x: 0,
+                      scale: 0.8,
+                      opacity: 0,
+                      rotateZ: (finalPosition - 2) * 3.5,
                     }}
-                    onMouseLeave={(e) => {
-                      e.currentTarget.style.borderColor = "rgba(0, 242, 255, 0.2)";
-                      e.currentTarget.style.background = "linear-gradient(135deg, rgba(0, 242, 255, 0.1), rgba(26, 111, 255, 0.1))";
-                      e.currentTarget.style.transform = "translateY(0)";
-                      e.currentTarget.style.boxShadow = "none";
+                    animate={{
+                      x: centerOffset,
+                      scale: 1,
+                      opacity: 1,
+                      rotateZ: 0,
+                    }}
+                    transition={{
+                      duration: 1.4,
+                      ease: [0.16, 1, 0.3, 1],
+                      delay: 0.15 + idx * 0.18,
+                    }}
+                    style={{
+                      position: "absolute",
+                      width: "350px",
+                      height: "520px",
+                      zIndex: idx === 4 ? 10 : 5 - Math.abs(finalPosition - 2),
+                      transformStyle: "preserve-3d",
                     }}
                   >
-                      <h2 style={{ color: "#00F2FF", marginBottom: "0.5rem", fontFamily: "'Italiana', serif", fontSize: "1.5rem" }}>
-                        {project.title}
-                      </h2>
-                      <p style={{ color: "#C0C0C0", fontFamily: "Calibri, 'Segoe UI', Arial", fontSize: "0.95rem" }}>
-                        {project.desc}
-                      </p>
-                    </div>
-                  );
+                    <ProjectCard3D project={project} index={idx} />
+                  </motion.div>
+                );
               })}
             </div>
-            
+
+            {/* Bottom Change Platform CTA Button */}
             <button
               onClick={closeProjectsModal}
               style={{
-                position: "absolute",
-                bottom: "3rem",
+                position: "fixed",
+                bottom: "2.5rem",
                 left: "50%",
                 transform: "translateX(-50%)",
-                background: "linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(26, 111, 255, 0.15))",
-                border: "2px solid #00F2FF",
-                color: "#00F2FF",
-                padding: "0.75rem 2rem",
+                background: "linear-gradient(135deg, rgba(0, 200, 225, 0.15), rgba(2, 43, 105, 0.2))",
+                border: "1.5px solid #00EEFF",
+                color: "#00EEFF",
+                padding: "0.75rem 2.2rem",
                 borderRadius: "8px",
                 cursor: "pointer",
-                fontSize: "1rem",
+                fontSize: "0.95rem",
                 fontFamily: "'Italiana', serif",
                 fontWeight: "bold",
-                letterSpacing: "0.1em",
+                letterSpacing: "0.15em",
                 transition: "all 0.3s ease-out",
-                marginTop: "2rem",
+                boxShadow: "0 0 16px rgba(0, 200, 225, 0.25)",
+                zIndex: 60,
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = "linear-gradient(135deg, rgba(0, 242, 255, 0.3), rgba(26, 111, 255, 0.3))";
-                e.currentTarget.style.boxShadow = "0 0 20px rgba(0, 242, 255, 0.4)";
+                e.currentTarget.style.background =
+                  "linear-gradient(135deg, rgba(0, 200, 225, 0.25), rgba(2, 43, 105, 0.3))";
+                e.currentTarget.style.boxShadow = "0 0 25px rgba(0, 200, 225, 0.5)";
                 e.currentTarget.style.transform = "translateX(-50%) scale(1.05)";
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = "linear-gradient(135deg, rgba(0, 242, 255, 0.15), rgba(26, 111, 255, 0.15))";
-                e.currentTarget.style.boxShadow = "none";
+                e.currentTarget.style.background =
+                  "linear-gradient(135deg, rgba(0, 200, 225, 0.15), rgba(2, 43, 105, 0.2))";
+                e.currentTarget.style.boxShadow = "0 0 16px rgba(0, 200, 225, 0.25)";
                 e.currentTarget.style.transform = "translateX(-50%) scale(1)";
               }}
             >
-              Change Platform
+              CHANGE PLATFORM
             </button>
           </div>
         </div>
       )}
 
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&display=swap');
         @keyframes bounce {
-          0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.7; }
-          50%       { transform: translateX(-50%) translateY(6px); opacity: 0.2; }
+          0%, 100% { transform: translateX(-50%) translateY(0); opacity: 0.8; }
+          50%       { transform: translateX(-50%) translateY(6px); opacity: 0.3; }
         }
         @keyframes heroZoomIn {
-          0%   { opacity: 0; transform: scale(0.97) translateY(-96px); }
-          100% { opacity: 1; transform: scale(1) translateY(-90px); }
+          0%   { opacity: 0; transform: scale(0.97) translateY(-75px); }
+          100% { opacity: 1; transform: scale(1) translateY(-65px); }
+        }
+        @keyframes laserPulse {
+          0%, 100% { opacity: 0.6; filter: drop-shadow(0 0 14px #00EEFF); }
+          50%      { opacity: 1;   filter: drop-shadow(0 0 26px #00EEFF); }
+        }
+        @keyframes laserTravel {
+          0%   { left: -20%; opacity: 0; }
+          20%  { opacity: 1; }
+          80%  { opacity: 1; }
+          100% { left: 120%; opacity: 0; }
+        }
+        @keyframes verticalLaserScan {
+          0%   { top: 10%; opacity: 0; }
+          25%  { opacity: 0.35; }
+          75%  { opacity: 0.35; }
+          100% { top: 85%; opacity: 0; }
         }
         @keyframes slideFromBottom {
           0%   { opacity: 0; transform: translateY(80px); }
@@ -523,30 +874,6 @@ export default function Index() {
         @keyframes slideFromTop {
           0%   { opacity: 0; transform: translateY(-80px); }
           100% { opacity: 1; transform: translateY(0px); }
-        }
-        @keyframes dealCardRight {
-          0%   { opacity: 0; transform: translateX(60px) scale(0.92); }
-          100% { opacity: 1; transform: translateX(0px) scale(1); }
-        }
-        @keyframes dealCard {
-          0%   { opacity: 0; transform: translateX(-60px) scale(0.92); }
-          100% { opacity: 1; transform: translateX(0px) scale(1); }
-        }
-        @keyframes letterDrop {
-          0%   { opacity: 0; transform: translateY(-10px); }
-          100% { opacity: 1; transform: translateY(0px); }
-        }
-        @keyframes textIn {
-          0% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-          100% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-        }
-        @keyframes textOut {
-          0% { opacity: 1; transform: translate(-50%, -50%) scale(1); }
-          100% { opacity: 0; transform: translate(-50%, -50%) scale(0.8); }
-        }
-        @keyframes pulseGlow {
-          0%, 100% { opacity: 0.4; transform: scaleY(0.9); }
-          50%       { opacity: 1;   transform: scaleY(1.1); }
         }
         @keyframes slideOutLeft {
           0%   { opacity: 1; transform: translateX(0); }
@@ -573,67 +900,8 @@ export default function Index() {
           100% { opacity: 0; }
         }
         @keyframes popIn {
-          0%   { opacity: 0; transform: scale(0.8); }
+          0%   { opacity: 0; transform: scale(0.85); }
           100% { opacity: 1; transform: scale(1); }
-        }
-        @keyframes slideDown {
-          0%   { opacity: 0; transform: translateY(-30px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes slideInUp {
-          0%   { opacity: 0; transform: translateY(40px); }
-          100% { opacity: 1; transform: translateY(0); }
-        }
-        @keyframes cardStage1 {
-          0% {
-            opacity: 0;
-            transform: scale(0.4) translateX(var(--startX));
-          }
-          10% {
-            opacity: 1;
-            transform: scale(1) translateX(var(--startX));
-          }
-          35% {
-            transform: scale(1) translateX(var(--startX));
-          }
-          100% {
-            transform: scale(1) translateX(var(--finalX));
-          }
-        }
-        @keyframes cardStage2 {
-          0% {
-            opacity: 0;
-            transform: scale(0.4) translateX(var(--startX));
-          }
-          35% {
-            opacity: 0;
-            transform: scale(0.4) translateX(var(--startX));
-          }
-          50% {
-            opacity: 1;
-            transform: scale(1) translateX(var(--startX));
-          }
-          100% {
-            transform: scale(1) translateX(var(--finalX));
-          }
-        }
-        @keyframes cardStage3 {
-          0% {
-            opacity: 0;
-            transform: scale(0.4) translateX(0);
-          }
-          75% {
-            opacity: 0;
-            transform: scale(0.4) translateX(0);
-          }
-          90% {
-            opacity: 1;
-            transform: scale(1) translateX(0);
-          }
-          100% {
-            opacity: 1;
-            transform: scale(1) translateX(0);
-          }
         }
       `}</style>
     </div>
