@@ -9,6 +9,7 @@ export interface ProjectData {
   category: "web" | "mobile";
   tags: string[];
   mockup: string;
+  type?: string;
   demoUrl?: string;
 }
 
@@ -103,7 +104,7 @@ export const ProjectCard3D: React.FC<ProjectCard3DProps> = ({ project, index }) 
         {/* ── TOP IMAGE AREA (Flush to top, left, right lines - No inner border) ── */}
         <div
           style={{ transform: "translateZ(15px)" }}
-          className="relative w-full h-[270px] shrink-0 bg-[#020714] rounded-t-2xl overflow-hidden flex items-center justify-center p-4 border-b border-cyan-500/15"
+          className="relative w-full h-[270px] shrink-0 bg-[#020714] rounded-t-2xl overflow-hidden border-b border-cyan-500/15"
         >
           {/* Mockup Image */}
           <motion.img
@@ -116,7 +117,7 @@ export const ProjectCard3D: React.FC<ProjectCard3DProps> = ({ project, index }) 
               delay: scanDelay,
               ease: [0.16, 1, 0.3, 1],
             }}
-            className="w-full h-full object-contain select-none transition-transform duration-500 group-hover:scale-106 drop-shadow-[0_12px_24px_rgba(0,0,0,0.85)]"
+            className="w-full h-full object-cover object-top select-none transition-transform duration-500 group-hover:scale-106"
           />
 
           {/* ── SIGNATURE LASER SCANNER LINE EFFECT ── */}
@@ -172,19 +173,23 @@ export const ProjectCard3D: React.FC<ProjectCard3DProps> = ({ project, index }) 
           className="relative flex-1 p-5 flex flex-col justify-between bg-[#040A18]/95 rounded-b-2xl z-20"
         >
           <div>
-            <div className="flex items-baseline justify-between gap-2 mb-1.5">
-              <h3
-                className="text-white font-medium text-lg tracking-tight group-hover:text-cyan-300 transition-colors line-clamp-1"
-                style={{ fontFamily: "'Italiana', serif" }}
-              >
-                {project.title}
-              </h3>
+            <div className="flex items-center justify-between gap-2 mb-1.5">
+              <span className="text-[10px] font-mono text-cyan-400 uppercase tracking-wider">
+                {project.type || (project.category === "web" ? "Web System" : "Mobile App")}
+              </span>
               <span className="text-[11px] font-mono text-cyan-400/70 shrink-0">
                 / 0{index + 1}
               </span>
             </div>
 
-            <p className="text-xs text-slate-400 leading-relaxed line-clamp-2">
+            <h3
+              className="text-white font-medium text-lg tracking-tight group-hover:text-cyan-300 transition-colors line-clamp-1"
+              style={{ fontFamily: "'Italiana', serif" }}
+            >
+              {project.title}
+            </h3>
+
+            <p className="text-xs text-slate-400 leading-relaxed line-clamp-2 mt-1">
               {project.desc}
             </p>
           </div>

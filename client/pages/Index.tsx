@@ -1,92 +1,76 @@
 import React, { useEffect, useRef, useState } from "react";
 import { ProjectCard3D, ProjectData } from "@/components/ProjectCard3D";
 import { AboutSection } from "@/components/AboutSection";
+import { VerticalDynamicIsland } from "@/components/VerticalDynamicIsland";
 import { X, ArrowRight, Layers } from "lucide-react";
 import { motion } from "framer-motion";
 
 const WEB_PROJECTS: ProjectData[] = [
   {
     id: "web-1",
-    title: "E-Commerce Architecture",
-    desc: "High-throughput headless marketplace with Stripe integration, instant search, and real-time inventory telemetry.",
+    title: "PulseSetter",
+    desc: "Integrated healthcare & educational platform connecting patients, doctors, and students with online channeling and book marketplace.",
     category: "web",
-    tags: ["Next.js", "TypeScript", "Stripe", "PostgreSQL"],
-    mockup: "/images/laptop.png",
+    type: "Client Project",
+    tags: ["React", "Razorpay", "REST APIs", "HealthTech"],
+    mockup: "/images/web_pulsesetter.jpg",
   },
   {
     id: "web-2",
-    title: "Real-Time Analytics Core",
-    desc: "Financial intelligence dashboard featuring live telemetry feeds, websocket streaming, and interactive charting.",
+    title: "Matrix Digital Solutions",
+    desc: "Modern corporate portfolio website designed to showcase company services, brand identity, interactive animations, and client work.",
     category: "web",
-    tags: ["React", "Recharts", "Node.js", "WebSockets"],
-    mockup: "/images/laptop.png",
+    type: "Client Project",
+    tags: ["React", "TypeScript", "Vite", "Vercel"],
+    mockup: "/images/web_matrix.jpg",
   },
   {
     id: "web-3",
-    title: "Headless CMS Engine",
-    desc: "Enterprise content delivery platform with multi-tenant architecture and dynamic schema modeling.",
+    title: "LAW.LK",
+    desc: "Legal information & regulatory journal platform with statute publishing, user authentication, and nested community discussions.",
     category: "web",
-    tags: ["TailwindCSS", "GraphQL", "Express", "Redis"],
-    mockup: "/images/laptop.png",
+    type: "Client Project",
+    tags: ["React", "TypeScript", "Firebase", "Firestore"],
+    mockup: "/images/web_lawlk.jpg",
   },
   {
     id: "web-4",
-    title: "Operations Command Hub",
-    desc: "Mission-critical administrative management portal with RBAC access control and security audit logs.",
+    title: "TripShare",
+    desc: "Shared tour booking platform connecting passengers and drivers with tour discovery, date filtering, and interactive map routing.",
     category: "web",
-    tags: ["React", "Radix UI", "Zod", "Serverless"],
-    mockup: "/images/laptop.png",
+    type: "Personal Project",
+    tags: ["React", "Firebase", "OpenStreetMap", "Full-Stack"],
+    mockup: "/images/web_tripshare.jpg",
   },
   {
     id: "web-5",
-    title: "AI Knowledge Workspace",
-    desc: "High-performance AI search & documentation platform optimized for ultra-low latency semantic indexing.",
+    title: "SC Courier",
+    desc: "Logistics courier management system coordinating customers, riders, and administrators with parcel tracking and automated reporting.",
     category: "web",
-    tags: ["Next.js", "OpenAI API", "Vector DB", "Tailwind"],
-    mockup: "/images/laptop.png",
+    type: "Academic Group Project",
+    tags: ["React", "PostgreSQL", "REST APIs", "Map Tracking"],
+    mockup: "/images/web_sccourier.jpg",
   },
 ];
 
 const MOBILE_PROJECTS: ProjectData[] = [
   {
     id: "mob-1",
-    title: "Biometric Fitness Tracker",
-    desc: "Health telemetry & workout suite with continuous Apple HealthKit sync, GPS routing, and real-time biometric metrics.",
+    title: "TripShare Mobile",
+    desc: "Mobile application for travellers to discover shared tours, connect with drivers, and coordinate journeys with live in-app chat.",
     category: "mobile",
-    tags: ["React Native", "Expo", "HealthKit", "Node.js"],
-    mockup: "/images/mobile.png",
+    type: "Personal Project",
+    tags: ["Flutter", "Firebase", "OpenStreetMap", "Dart"],
+    mockup: "/images/mobile_tripshare.jpg",
   },
   {
     id: "mob-2",
-    title: "Encrypted Social Network",
-    desc: "Real-time communication network with end-to-end encrypted messaging, media vaults, and interactive feeds.",
+    title: "SC Courier Rider App",
+    desc: "Delivery management mobile application for courier riders to manage assigned parcels, update statuses, and track live locations.",
     category: "mobile",
-    tags: ["Flutter", "Firebase", "WebSockets", "Dart"],
-    mockup: "/images/mobile.png",
-  },
-  {
-    id: "mob-3",
-    title: "Global Weather Radar",
-    desc: "Hyper-local atmospheric forecast app powered by Doppler radar feeds and predictive machine learning models.",
-    category: "mobile",
-    tags: ["React Native", "Mapbox", "TypeScript", "Redux"],
-    mockup: "/images/mobile.png",
-  },
-  {
-    id: "mob-4",
-    title: "Lossless Audio Streamer",
-    desc: "Studio-grade music platform with spatial audio decoding, offline caching, and collaborative playlists.",
-    category: "mobile",
-    tags: ["Swift / Kotlin", "Audio Engine", "AWS S3", "GraphQL"],
-    mockup: "/images/mobile.png",
-  },
-  {
-    id: "mob-5",
-    title: "Focus & Team Studio",
-    desc: "Collaborative team workspace with offline-first synchronization, time tracking, and productivity sprints.",
-    category: "mobile",
-    tags: ["React Native", "WatermelonDB", "Expo", "Tailwind"],
-    mockup: "/images/mobile.png",
+    type: "Academic Group Project",
+    tags: ["Flutter", "PostgreSQL", "REST APIs", "Google Maps"],
+    mockup: "/images/mobile_sccourier.jpg",
   },
 ];
 
@@ -663,6 +647,18 @@ export default function Index() {
         </div>
       </div>
 
+      {/* ── LEFT-EDGE VERTICAL DYNAMIC ISLAND ── */}
+      <VerticalDynamicIsland
+        currentSection={currentSection}
+        onNavigate={(idx) => {
+          if (!isAnimating && idx !== currentSection) {
+            setIsAnimating(true);
+            setCurrentSection(idx);
+            setTimeout(() => setIsAnimating(false), 900);
+          }
+        }}
+      />
+
       {/* ── DOT NAVIGATION (4 SECTIONS) ── */}
       <div
         className="fixed right-6 top-1/2 z-50 flex flex-col gap-3.5"
@@ -762,10 +758,10 @@ export default function Index() {
               }}
             >
               {activeProjects.map((project, idx) => {
-                const finalOrder = [0, 2, 4, 3, 1];
-                const finalPosition = finalOrder.indexOf(idx);
-                const cardSpacing = 360;
-                const centerOffset = (finalPosition - 2) * cardSpacing;
+                const total = activeProjects.length;
+                const cardSpacing = 370;
+                // Dynamically centers any number of cards (e.g. 5 for Web, 2 for Mobile)
+                const centerOffset = (idx - (total - 1) / 2) * cardSpacing;
 
                 return (
                   <motion.div
@@ -774,7 +770,7 @@ export default function Index() {
                       x: 0,
                       scale: 0.8,
                       opacity: 0,
-                      rotateZ: (finalPosition - 2) * 3.5,
+                      rotateZ: (idx - (total - 1) / 2) * 3,
                     }}
                     animate={{
                       x: centerOffset,
@@ -791,7 +787,7 @@ export default function Index() {
                       position: "absolute",
                       width: "350px",
                       height: "520px",
-                      zIndex: idx === 4 ? 10 : 5 - Math.abs(finalPosition - 2),
+                      zIndex: 10 - Math.abs(idx - Math.floor(total / 2)),
                       transformStyle: "preserve-3d",
                     }}
                   >

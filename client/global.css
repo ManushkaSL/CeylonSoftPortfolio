@@ -163,3 +163,17 @@ html {
     scroll-behavior: smooth;
   }
 }
+
+
+/* Custom cursor suppression on non-touch desktop */
+@media (pointer: fine) {
+  html.has-custom-cursor,
+  html.has-custom-cursor body,
+  html.has-custom-cursor * {
+    cursor: none !important;
+  }
+  html.has-custom-cursor input,
+  html.has-custom-cursor textarea {
+    cursor: text !important;
+  }
+}
