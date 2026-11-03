@@ -1,9 +1,18 @@
 import React, { useState, useEffect, useRef } from "react";
 import { motion, AnimatePresence } from "framer-motion";
-import { X, Sparkles, Compass, Layers, GraduationCap, MessageSquare, Bot } from "lucide-react";
+import {
+  X,
+  Sparkles,
+  Compass,
+  Layers,
+  GraduationCap,
+  MessageSquare,
+  Bot,
+} from "lucide-react";
 import { PixelCharacter } from "./pixel/PixelCharacter";
 import { PixelCloudBubble } from "./pixel/PixelCloudBubble";
 import { PixelChatPanel } from "./pixel/PixelChatPanel";
+import { PixelSoundToggle } from "./pixel/PixelSoundToggle";
 import { usePixelBehavior } from "./pixel/usePixelBehavior";
 import { FUN_FACTS } from "@/utils/pixelKnowledge";
 
@@ -29,11 +38,17 @@ export const VerticalDynamicIsland: React.FC<VerticalDynamicIslandProps> = ({
   const [isChatOpen, setIsChatOpen] = useState(false);
   const [factIndex, setFactIndex] = useState(0);
   const islandRef = useRef<HTMLDivElement>(null);
+  const characterRef = useRef<HTMLDivElement>(null);
 
   // Hook into Pixel's comprehensive cartoon behavior engine
   const {
     emotion,
     setEmotion,
+    animationId,
+    onExpressionStart,
+    onExpressionComplete,
+    onCloudInflate,
+    onCloudSettled,
     eyeLook,
     speech,
     isSpeaking,
@@ -43,7 +58,12 @@ export const VerticalDynamicIsland: React.FC<VerticalDynamicIslandProps> = ({
     handlePixelHover,
     handlePixelLeave,
     dismissSpeech,
-  } = usePixelBehavior({ currentSection, isChatOpen, projectsType });
+  } = usePixelBehavior({
+    currentSection,
+    isChatOpen,
+    projectsType,
+    characterRef,
+  });
 
   // Rotate fun facts periodically
   useEffect(() => {
@@ -94,17 +114,20 @@ export const VerticalDynamicIsland: React.FC<VerticalDynamicIslandProps> = ({
       {/* ── VERTICAL DYNAMIC ISLAND CAPSULE (Left Edge) ── */}
       <div
         ref={islandRef}
-        className="fixed left-0 top-1/2 -translate-y-1/2 z-[110] select-none"
+        className="fixed bottom-5 left-0 z-[110] select-none sm:bottom-auto sm:top-1/2 sm:-translate-y-1/2"
       >
         {/* Fluffy Cartoon Cloud Speech Bubble (Pops out to the right) */}
-        {speech && !isChatOpen && (
-          <PixelCloudBubble
-            text={speech.text}
-            emotion={speech.emotion}
-            isVisible={true}
-            onDismiss={dismissSpeech}
-          />
-        )}
+        <PixelCloudBubble
+          text={speech?.text || ""}
+          emotion={speech?.emotion}
+          isVisible={!!speech && !isChatOpen && !isExpanded}
+          anchorRef={characterRef}
+          layoutKey={isExpanded}
+          onDismiss={dismissSpeech}
+          messageId={speech?.id}
+          onInflate={onCloudInflate}
+          onSettled={onCloudSettled}
+        />
 
         <motion.div
           layout
@@ -119,9 +142,9 @@ export const VerticalDynamicIsland: React.FC<VerticalDynamicIslandProps> = ({
               setIsExpanded(true);
             }
           }}
-          className={`relative bg-[#020817]/95 backdrop-blur-2xl border border-cyan-400/35 border-l-0 shadow-[4px_0_30px_rgba(0,238,255,0.18)] cursor-pointer overflow-hidden transition-colors ${
+          className={`relative bg-[#020817]/95 backdrop-blur-2xl border border-cyan-400/35 border-l-0 shadow-[4px_0_30px_rgba(0,238,255,0.18)] cursor-pointer overflow-visible transition-colors ${
             isExpanded
-              ? "w-[275px] min-h-[415px] rounded-r-3xl p-5"
+              ? "w-[275px] min-h-[min(415px,calc(100dvh-24px))] max-h-[calc(100dvh-24px)] overflow-y-auto rounded-r-3xl p-5"
               : "w-[50px] h-[300px] rounded-r-2xl py-3.5 flex flex-col items-center justify-between hover:border-cyan-400/50 hover:shadow-[6px_0_35px_rgba(0,238,255,0.28)]"
           }`}
         >
@@ -133,25 +156,38 @@ export const VerticalDynamicIsland: React.FC<VerticalDynamicIslandProps> = ({
             <div className="h-full flex flex-col items-center justify-between w-full">
               {/* Top Head: Living Expressive Pixel Robot */}
               <div
-                className="flex flex-col items-center cursor-pointer group"
-                onClick={onCharacterClick}
-                onMouseEnter={handlePixelHover}
-                onMouseLeave={handlePixelLeave}
-                title="Pixel — Click to interact, poke, or chat!"
+                ref={characterRef}
+                className="relative z-10 ml-[14px] flex shrink-0 items-center justify-center"
               >
-                <PixelCharacter
-                  emotion={emotion}
-                  isSpeaking={isSpeaking}
-                  eyeLook={eyeLook}
-                  size={36}
-                  className="transition-transform group-hover:scale-110"
-                />
+                <button
+                  type="button"
+                  className="group flex h-16 w-16 items-center justify-center rounded-2xl focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-cyan-200"
+                  onClick={onCharacterClick}
+                  onMouseEnter={handlePixelHover}
+                  onMouseLeave={handlePixelLeave}
+                  title="Pixel — Click to interact, poke, or chat!"
+                  aria-label="Interact with Pixel"
+                >
+                  <PixelCharacter
+                    emotion={emotion}
+                    animationId={animationId}
+                    onExpressionStart={onExpressionStart}
+                    onExpressionComplete={onExpressionComplete}
+                    isSpeaking={isSpeaking}
+                    eyeLook={eyeLook}
+                    size={64}
+                    className="transition-transform duration-300 group-hover:scale-105"
+                  />
+                </button>
               </div>
 
               {/* Vertical Spine: Active Section Label */}
               <div
                 className="flex-1 my-3 flex items-center justify-center cursor-pointer"
-                style={{ writingMode: "vertical-rl", transform: "rotate(180deg)" }}
+                style={{
+                  writingMode: "vertical-rl",
+                  transform: "rotate(180deg)",
+                }}
                 onClick={() => setIsExpanded(true)}
               >
                 <span className="text-[11px] font-mono tracking-[0.24em] text-cyan-300 uppercase font-semibold drop-shadow-[0_0_8px_rgba(0,238,255,0.4)] hover:text-white transition-colors">
@@ -161,6 +197,7 @@ export const VerticalDynamicIsland: React.FC<VerticalDynamicIslandProps> = ({
 
               {/* Bottom Status Dot and Chat Quick Button */}
               <div className="flex flex-col items-center gap-1.5">
+                <PixelSoundToggle />
                 <button
                   onClick={(e) => {
                     e.stopPropagation();
@@ -192,13 +229,18 @@ export const VerticalDynamicIsland: React.FC<VerticalDynamicIslandProps> = ({
                   onMouseEnter={handlePixelHover}
                   onMouseLeave={handlePixelLeave}
                 >
-                  <PixelCharacter
-                    emotion={emotion}
-                    isSpeaking={isSpeaking}
-                    eyeLook={eyeLook}
-                    size={42}
-                    className="group-hover:scale-105 transition-transform"
-                  />
+                  <div ref={characterRef} className="shrink-0">
+                    <PixelCharacter
+                      emotion={emotion}
+                      animationId={animationId}
+                      onExpressionStart={onExpressionStart}
+                      onExpressionComplete={onExpressionComplete}
+                      isSpeaking={isSpeaking}
+                      eyeLook={eyeLook}
+                      size={56}
+                      className="group-hover:scale-105 transition-transform"
+                    />
+                  </div>
 
                   <div>
                     <div className="text-white font-medium text-sm leading-tight flex items-center gap-1.5">
@@ -212,16 +254,19 @@ export const VerticalDynamicIsland: React.FC<VerticalDynamicIslandProps> = ({
                 </div>
 
                 {/* Close Island Button */}
-                <button
-                  onClick={(e) => {
-                    e.stopPropagation();
-                    setIsExpanded(false);
-                  }}
-                  className="w-7 h-7 rounded-lg bg-cyan-950/50 border border-cyan-400/30 flex items-center justify-center text-cyan-300 hover:text-white hover:border-cyan-400 transition-colors"
-                  aria-label="Collapse island"
-                >
-                  <X className="w-3.5 h-3.5" />
-                </button>
+                <div className="flex shrink-0 items-center gap-1">
+                  <PixelSoundToggle className="rounded-lg" />
+                  <button
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setIsExpanded(false);
+                    }}
+                    className="w-7 h-7 rounded-lg bg-cyan-950/50 border border-cyan-400/30 flex items-center justify-center text-cyan-300 hover:text-white hover:border-cyan-400 transition-colors"
+                    aria-label="Collapse island"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                </div>
               </div>
 
               {/* Chat with Pixel CTA Button */}

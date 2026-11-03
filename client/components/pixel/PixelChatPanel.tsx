@@ -89,7 +89,7 @@ export const PixelChatPanel: React.FC<PixelChatPanelProps> = ({
     setMessages((prev) => [...prev, userMsg]);
     setIsThinking(true);
     onPixelEmotionChange?.("thinking");
-    pixelAudio.play("pop");
+    pixelAudio.play("thinking");
 
     try {
       // 1. Try secure backend endpoint
@@ -115,7 +115,7 @@ export const PixelChatPanel: React.FC<PixelChatPanelProps> = ({
         ]);
 
         onPixelEmotionChange?.(emotion);
-        pixelAudio.play("chime");
+        pixelAudio.play(emotion === "excited" ? "excited" : "happy");
       } else {
         throw new Error("API call failed");
       }
@@ -136,7 +136,7 @@ export const PixelChatPanel: React.FC<PixelChatPanelProps> = ({
         ]);
 
         onPixelEmotionChange?.(fallback.emotion);
-        pixelAudio.play("happy");
+        pixelAudio.play(fallback.emotion === "excited" ? "excited" : "happy");
       }, 500);
     } finally {
       setIsThinking(false);
@@ -183,11 +183,10 @@ export const PixelChatPanel: React.FC<PixelChatPanelProps> = ({
               {/* Sound Toggle */}
               <button
                 onClick={handleToggleSound}
-                className={`p-1.5 rounded-lg border transition-colors ${
-                  soundOn
-                    ? "text-cyan-300 border-cyan-400/40 bg-cyan-950/60"
-                    : "text-slate-400 border-transparent hover:text-white"
-                }`}
+                className={`p-1.5 rounded-lg border transition-colors ${soundOn
+                  ? "text-cyan-300 border-cyan-400/40 bg-cyan-950/60"
+                  : "text-slate-400 border-transparent hover:text-white"
+                  }`}
                 title={soundOn ? "Mute cartoon sounds" : "Enable cartoon sounds"}
                 aria-label="Toggle cartoon sounds"
               >
@@ -197,11 +196,10 @@ export const PixelChatPanel: React.FC<PixelChatPanelProps> = ({
               {/* Spontaneous Messages Toggle */}
               <button
                 onClick={onToggleSpontaneous}
-                className={`p-1.5 rounded-lg border transition-colors ${
-                  spontaneousEnabled
-                    ? "text-amber-300 border-amber-400/40 bg-amber-950/40"
-                    : "text-slate-400 border-transparent hover:text-white"
-                }`}
+                className={`p-1.5 rounded-lg border transition-colors ${spontaneousEnabled
+                  ? "text-amber-300 border-amber-400/40 bg-amber-950/40"
+                  : "text-slate-400 border-transparent hover:text-white"
+                  }`}
                 title={spontaneousEnabled ? "Mute spontaneous speech bubbles" : "Enable spontaneous speech bubbles"}
                 aria-label="Toggle spontaneous bubbles"
               >
@@ -246,11 +244,10 @@ export const PixelChatPanel: React.FC<PixelChatPanelProps> = ({
                 )}
 
                 <div
-                  className={`max-w-[82%] px-3 py-2 rounded-xl leading-relaxed select-text ${
-                    msg.sender === "user"
-                      ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-br-xs shadow-[0_2px_10px_rgba(0,180,216,0.25)]"
-                      : "bg-[#07172B] text-slate-200 border border-cyan-500/20 rounded-bl-xs shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
-                  }`}
+                  className={`max-w-[82%] px-3 py-2 rounded-xl leading-relaxed select-text ${msg.sender === "user"
+                    ? "bg-gradient-to-r from-cyan-600 to-blue-600 text-white rounded-br-xs shadow-[0_2px_10px_rgba(0,180,216,0.25)]"
+                    : "bg-[#07172B] text-slate-200 border border-cyan-500/20 rounded-bl-xs shadow-[0_2px_12px_rgba(0,0,0,0.5)]"
+                    }`}
                 >
                   {msg.text}
                 </div>

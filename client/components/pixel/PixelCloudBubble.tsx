@@ -6,16 +6,26 @@ interface PixelCloudBubbleProps {
   text: string;
   emotion?: PixelEmotion;
   isVisible: boolean;
+  anchorRef?: React.RefObject<HTMLElement>;
+  layoutKey?: boolean;
   onDismiss?: () => void;
   className?: string;
+  messageId?: string;
+  onInflate?: (id: string) => void;
+  onSettled?: (id: string) => void;
 }
 
 export const PixelCloudBubble: React.FC<PixelCloudBubbleProps> = ({
   text,
   emotion = "neutral",
   isVisible,
+  anchorRef,
+  layoutKey,
   onDismiss,
   className = "",
+  messageId,
+  onInflate,
+  onSettled,
 }) => {
   // Emotion-specific spring bounce variants
   const getSpringConfig = () => {
@@ -38,6 +48,12 @@ export const PixelCloudBubble: React.FC<PixelCloudBubbleProps> = ({
       {isVisible && (
         <motion.div
           key="pixel-cloud"
+          onAnimationStart={() => {
+            if (messageId) onInflate?.(messageId);
+          }}
+          onAnimationComplete={() => {
+            if (messageId) onSettled?.(messageId);
+          }}
           initial={{ scale: 0.1, opacity: 0, x: -12, y: 10 }}
           animate={{
             scale: [0.1, 1.06, 0.98, 1],
